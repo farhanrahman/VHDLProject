@@ -1,0 +1,46 @@
+-- screen is initially cleared to white ('0') state
+--draw a black ('1') star
+MW 12 12
+DB 32 32
+MW 12 22
+DB 32 32
+MW 12 32
+DB 32 32
+MW 12 42
+DB 32 32
+MW 12 52
+DB 32 32
+MW 22 12
+DB 32 32
+MW 22 52
+DB 32 32
+MW 32 12
+DB 32 32
+MW 32 52
+DB 32 32
+MW 42 12
+DB 32 32
+MW 42 52
+DB 32 32
+MW 52 12
+DB 32 32
+MW 52 22
+DB 32 32
+MW 52 32
+DB 32 32
+MW 52 42
+DB 32 32
+MW 52 52
+DB 32 32
+-- draw a black square
+MW 0 0
+CB 10 10
+-- draw to invert colour lines in the square
+DI 0 0
+MW 0 10
+DI 10 0
+-- flush pixels
+FB 0 0
+-- these tests are NOT comprehensive - work out your own!
+
+
