@@ -3,8 +3,16 @@ LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 ENTITY db_fsm IS
 PORT	(
-	clk, reset, start	: IN  std_logic;
-	vwrite, delay		: OUT std_logic 
+	-- HOST SIGNALS
+	clk, reset, ready	: IN std_logic;
+	op, pen			: IN std_logic(1 DOWNTO 0);
+	xin, yin		: IN std_logic(5 DOWNTO 0);
+	busy			: OUT std_logic;	
+
+	-- DRAWOCTANT SIGNALS
+	vwrite, delay		: OUT std_logic;
+
+	-- RCB SIGNALS
 	);
 END db_fsm;
 
