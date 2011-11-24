@@ -2,16 +2,17 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
+USE WORK.ALL;
 
 ENTITY draw_block IS
 	GENERIC(
 		xsize			: INTEGER := 6;
-		ysize			: INTEGER := 6;
+		ysize			: INTEGER := 6
 		);
 	PORT(
 		-- HOST INTERFACE
 		clk,reset,hdb_dav	: IN std_logic;
-		hdb					: IN std_logic(3+xsize+ysize DOWNTO 0);	
+		hdb					: IN std_logic_vector(3+xsize+ysize DOWNTO 0);	
 		hdb_busy			: OUT std_logic;
 				
 		-- DB/RCB Interface
@@ -29,18 +30,19 @@ TYPE   state_t			IS (draw_run, draw_start, listen);
 SIGNAL state, nstate  		: state_t;
 
 -- General Signals
-SIGNAL op, pen			: std_logic(1 DOWNTO 0);
-SIGNAL xin				: std_logic(xsize-1 DOWNTO 0);
-SIGNAL yin				: std_logic(ysize-1 DOWNTO 0); 
-SIGNAL penx				: std_logic(xsize-1 DOWNTO 0);
-SIGNAL peny				: std_logic(ysize-1 DOWNTO 0); 
+SIGNAL op, pen			: std_logic_vector(1 DOWNTO 0);
+SIGNAL xin				: std_logic_vector(xsize-1 DOWNTO 0);
+SIGNAL yin				: std_logic_vector(ysize-1 DOWNTO 0); 
+SIGNAL penx				: std_logic_vector(xsize-1 DOWNTO 0);
+SIGNAL peny				: std_logic_vector(ysize-1 DOWNTO 0); 
 
 -- draw_octant signals
 SIGNAL swapxy, negx, negy		: std_logic;
-SIGNAL draw_reset, draw_done	: std_logic;
-SIGNAL draw_x					: std_logic(xsize-1 DOWNTO 0);
-SIGNAL draw_y					: std_logic(ysize-1 DOWNTO 0);
-
+SIGNAL draw_reset, draw_done,	draw, xbias : std_logic;
+SIGNAL draw_x					: std_logic_vector(xsize-1 DOWNTO 0);
+SIGNAL draw_y					: std_logic_vector(ysize-1 DOWNTO 0);
+SIGNAL dxin				   : std_logic_vector(xsize-1 DOWNTO 0);
+SIGNAL dyin			   	: std_logic_vector(ysize-1 DOWNTO 0); 
 
 BEGIN
 
@@ -90,10 +92,11 @@ BEGIN
 	xbias <= '1';
 	
 	-- Shall we swap xy? reflects on x=y 
-	IF (abs(signed(xin - penx)) < abs(signed(yin - peny))) THEN
+	IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
 		swapxy <= '1';
 	ELSE	
 		swapxy <= '0';
+	END IF;
 	
 	-- Is x negative?
 	IF (penx > xin) THEN 
@@ -113,7 +116,7 @@ END PROCESS OCT;
 
 
 -- State Combinational Logic
-STATE: PROCESS(state, hdb_dav, xin, yin, penx, peny, pen, draw_x, draw_y)
+STATECOMB: PROCESS(state, hdb_dav, xin, yin, penx, peny, pen, draw_x, draw_y, op, draw_done)
 BEGIN
 	-- defaults
 	nstate <= state;
@@ -128,11 +131,11 @@ BEGIN
 			
 			-- check op and deal with it
 			CASE op IS
-				WHEN '00' => -- Move pen
+				WHEN "00" => -- Move pen
 					penx <= xin;
 					peny <= yin;
 
-				WHEN '01' => -- Draw
+				WHEN "01" => -- Draw
 					-- Send start postion to draw_octant
 					hdb_busy <= '1';
 					draw_reset <= '1';
@@ -140,15 +143,18 @@ BEGIN
 					dyin <= peny;
 					nstate <= draw_start;
 
-				WHEN '10' => -- Clear
+				WHEN "10" => -- Clear
 					x <= xin;
 					y <= yin;
 					rcbcmd <= "1" & pen;
 					startcmd <= '1';	
 
-				WHEN '11' => -- Flush
-					rcbcmd <= '000';
+				WHEN "11" => -- Flush
+					rcbcmd <= "000";
 					startcmd <= '1';
+					
+				WHEN others =>
+				  null;
 
 			END CASE;
 
@@ -170,13 +176,13 @@ BEGIN
 			-- Check if finished
 			IF (draw_done = '1') THEN
 				nstate <= listen;
-			END IF:
+			END IF;
 						
 	END CASE;
 
-	END IF
+	END IF;
 
-END PROCESS STATE;
+END PROCESS STATECOMB;
 
 
 -- State change clocked
