@@ -11,7 +11,7 @@ ENTITY draw_block IS
 	PORT(
 		-- HOST INTERFACE
 		clk,reset,hdb_dav	: IN std_logic;
-		hdb			: IN std_logic(15 DOWNTO 0);	
+		hdb			: IN std_logic(3+xsize+ysize DOWNTO 0);	
 		hdb_busy		: OUT std_logic;
 				
 		-- DB/RCB Interface
@@ -25,13 +25,17 @@ END ENTITY draw_block;
 
 ARCHITECTURE behav OF draw_block IS
 
-TYPE   state_t IS (m3, m2, m1, mx);
+TYPE   state_t IS (drawing, receiving);
 
 SIGNAL state, nstate  	: state_t;
-SIGNAL delay1         	: std_logic;
 
-SIGNAL penx, peny	: std_logic_vector(5 DOWNTO 0);
-	
+SIGNAL op, pen		: std_logic(1 DOWNTO 0);
+SIGNAL xin		: std_logic(xsize-1 DOWNTO 0);
+SIGNAL yin		: std_logic(ysize-1 DOWNTO 0); 
+
+SIGNAL penx		: std_logic(xsize-1 DOWNTO 0);
+SIGNAL peny		: std_logic(ysize-1 DOWNTO 0); 
+
 BEGIN
 
 -- wrapper for draw_any_octant
@@ -64,19 +68,28 @@ draw_block_i 	: ENTITY draw_any_octant
 		y      => oy1
 		);
 
+-- Set useful signals
+SIGS: PROCESS()
+BEGIN
+	op  <= hdb(3+xsize+ysize DOWNTO 2+xsize+ysize);
+	pen <= hdb(1 DOWNTO 0);
+	xin <= hdb(1+xsize+ysize DOWNTO 2+ysize);
+	yin <= hdb(1+ysize DOWNTO 2);
+END
+
 -- Configure draw octant - Combinational
 OCT: PROCESS(hdb, penx, peny)
 BEGIN
 	xbias <= '1';
 	
 	-- Shall we swap xy? reflects on x=y 
-	IF (abs(signed(hdb(13 DOWNTO 8) - penx)) < abs(signed(hdb(7 DOWNTO 2) - peny))) THEN
+	IF (abs(signed(xin - penx)) < abs(signed(yin - peny))) THEN
 		swapxy <= '1';
 	ELSE	
 		swapxy <= '0';
 	
 	-- Is x negative?
-	IF (penx > hdb(13 DOWNTO 8)) THEN 
+	IF (penx > xin) THEN 
 		negx <= '1';
 	ELSE
 		negx <= '0';
@@ -84,7 +97,7 @@ BEGIN
 
 
 	-- Is y negative?
-	IF (peny > hdb(7 DOWNTO 2)) THEN 
+	IF (peny > yin) THEN 
 		negy <= '1';
 	ELSE
 		negy <= '0';
@@ -92,25 +105,31 @@ BEGIN
 
 END PROCESS OCT;
 
+
 -- State Combinational Logic
 STATE: PROCESS()
 BEGIN
-
 	--defaults
 	nstate <= state;
 
 	CASE state IS
-		WHEN reset =>
-
+		WHEN receiving =>
+			;	
+		WHEN drawing => -- completes drawing operation
+			;
 	END CASE;
 
 END PROCESS STATE;
 
---Clocked Logic
+
+-- State change clocked
 FSM: PROCESS
 BEGIN
-  WAIT UNTIL clk'EVENT AND clk = '1';
-  state <= nstate;
+WAIT UNTIL clk'EVENT AND clk = '1';
+	state <= nstate;
+	IF reset = '1' THEN
+		state <= waits; -- sychronous reset
+	END IF;
 END PROCESS FSM;
 
 END ARCHITECTURE behav;
