@@ -61,6 +61,7 @@ draw_block_i 	: ENTITY draw_any_octant
 		-- IN
 		clk    => clk,
 		resetx => draw_reset,
+		delay  => delaycmd,
 		draw   => draw,
 		xbias  => xbias,
 		xin    => dxin,
@@ -112,7 +113,7 @@ END PROCESS OCT;
 
 
 -- State Combinational Logic
-STATE: PROCESS()
+STATE: PROCESS(state, hdb_dav, xin, yin, penx, peny, pen, draw_x, draw_y)
 BEGIN
 	-- defaults
 	nstate <= state;
@@ -122,7 +123,7 @@ BEGIN
   
 	CASE state IS
 		WHEN listen =>
-			hdb_dav <= '0';
+			hdb_busy <= '0';
 			startcmd <= '0';
 			
 			-- check op and deal with it
@@ -133,15 +134,21 @@ BEGIN
 
 				WHEN '01' => -- Draw
 					-- Send start postion to draw_octant
-					hdb_dav <= '1';
+					hdb_busy <= '1';
 					draw_reset <= '1';
 					dxin <= penx;
 					dyin <= peny;
 					nstate <= draw_start;
 
-				WHEN others => -- Others (give to RCB)
-					
-								
+				WHEN '10' => -- Clear
+					x <= xin;
+					y <= yin;
+					rcbcmd <= "1" & pen;
+					startcmd <= '1';	
+
+				WHEN '11' => -- Flush
+					rcbcmd <= '000';
+					startcmd <= '1';
 
 			END CASE;
 
@@ -155,7 +162,7 @@ BEGIN
 
 		WHEN draw_run =>
 			-- Run draw sending result to RCB
-			rcbcmd <= '0'.pen;
+			rcbcmd <= "0" & pen;
 			x <= draw_x;
 			y <= draw_y;			
 			startcmd <= '1';
@@ -175,7 +182,7 @@ END PROCESS STATE;
 -- State change clocked
 FSM: PROCESS
 BEGIN
-WAIT UNTIL clk'EVENT AND clk = '1';
+WAIT UNTIL clk'EVENT AND clk = '1' AND delaycmd ='0';
 	state <= nstate;
 	IF reset = '1' THEN
 		state <= listen; -- sychronous reset

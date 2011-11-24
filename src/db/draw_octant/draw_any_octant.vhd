@@ -26,7 +26,7 @@ ENTITY draw_any_octant IS
   );
   
   PORT(
-    clk, resetx, draw, xbias : IN  std_logic;
+    clk, resetx, delay, draw, xbias : IN  std_logic;
     xin, yin                 : IN  std_logic_vector(vsize-1 DOWNTO 0);
     done                     : OUT std_logic;
     x, y                     : OUT std_logic_vector(vsize-1 DOWNTO 0);
@@ -46,7 +46,8 @@ BEGIN
     PORT MAP (
       clk    => clk,
       resetx => resetx,
-      draw   => draw,
+      delay  => delay,
+	  draw   => draw,
       done   => done,
       x      => x1,
       y      => y1,
@@ -125,7 +126,7 @@ BEGIN
 	R1 : PROCESS -- registered process
 
 	BEGIN
-		WAIT UNTIL clk'EVENT AND clk = '1';
+		WAIT UNTIL clk'EVENT AND clk = '1' AND delay = '0';
 			-- n+1 cycle signals
 			negx1 <= negx;
 			negy1 <= negy;
