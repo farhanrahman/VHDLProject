@@ -28,7 +28,7 @@ ARCHITECTURE rtl OF pix_write_cache IS
 	SIGNAL din           : std_logic_vector(w_size - 1 DOWNTO 0);
 BEGIN
 
-ram_fsm : ENTITY ram_fsm
+ramfsm : ENTITY work.ram_fsm
   PORT MAP(
     clk     => clk,
     reset   => reset,
@@ -57,12 +57,12 @@ BEGIN
     FOR i IN store'RANGE LOOP
       res := store(i);
       CASE res IS
-        WHEN same   => din(i) <= dout(i);
-        WHEN invert => din(i) <= NOT dout(i);
-        WHEN black  => din(i) <= 1;
-        WHEN white  => din(i) <= 0;
+        WHEN same   => vdin(i) <= vdout(i);
+        WHEN invert => vdin(i) <= NOT vdout(i);
+        WHEN black  => vdin(i) <= '1';
+        WHEN white  => vdin(i) <= '0';
         WHEN OTHERS => NULL;
-      END CASE res;
+      END CASE;
     END LOOP;
   END IF;
 END PROCESS din_compute;

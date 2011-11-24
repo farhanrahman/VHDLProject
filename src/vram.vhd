@@ -72,7 +72,7 @@ BEGIN
    END PROCESS p_write;
 
 
-   p_read : PROCESS(vaddr,dout_valid,ram_write_detect)
+   p_read : PROCESS(vaddr,dout_valid)--,ram_write_detect)
    BEGIN
       -- output data may change if either dout_valid, vaddr,
       -- or ram_write_detect changes
