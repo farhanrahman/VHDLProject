@@ -11,30 +11,36 @@ ENTITY draw_block IS
 	PORT(
 		-- HOST INTERFACE
 		clk,reset,hdb_dav	: IN std_logic;
-		hdb			: IN std_logic(3+xsize+ysize DOWNTO 0);	
-		hdb_busy		: OUT std_logic;
+		hdb					: IN std_logic(3+xsize+ysize DOWNTO 0);	
+		hdb_busy			: OUT std_logic;
 				
 		-- DB/RCB Interface
 		delaycmd 		: IN std_logic;
-		x 			: OUT std_logic_vector(xsize-1 DOWNTO 0);
-		y			: OUT std_logic_vector(ysize-1 DOWNTO 0);
+		x				: OUT std_logic_vector(xsize-1 DOWNTO 0);
+		y				: OUT std_logic_vector(ysize-1 DOWNTO 0);
 		rcbcmd 			: OUT std_logic_vector(2 DOWNTO 0);
 		startcmd 		: OUT std_logic
 	);
 END ENTITY draw_block;
 
 ARCHITECTURE behav OF draw_block IS
+-- FSM Signals
+TYPE   state_t			IS (draw_run, draw_start, listen);
+SIGNAL state, nstate  		: state_t;
 
-TYPE   state_t IS (drawing, receiving);
+-- General Signals
+SIGNAL op, pen			: std_logic(1 DOWNTO 0);
+SIGNAL xin				: std_logic(xsize-1 DOWNTO 0);
+SIGNAL yin				: std_logic(ysize-1 DOWNTO 0); 
+SIGNAL penx				: std_logic(xsize-1 DOWNTO 0);
+SIGNAL peny				: std_logic(ysize-1 DOWNTO 0); 
 
-SIGNAL state, nstate  	: state_t;
+-- draw_octant signals
+SIGNAL swapxy, negx, negy		: std_logic;
+SIGNAL draw_reset, draw_done	: std_logic;
+SIGNAL draw_x					: std_logic(xsize-1 DOWNTO 0);
+SIGNAL draw_y					: std_logic(ysize-1 DOWNTO 0);
 
-SIGNAL op, pen		: std_logic(1 DOWNTO 0);
-SIGNAL xin		: std_logic(xsize-1 DOWNTO 0);
-SIGNAL yin		: std_logic(ysize-1 DOWNTO 0); 
-
-SIGNAL penx		: std_logic(xsize-1 DOWNTO 0);
-SIGNAL peny		: std_logic(ysize-1 DOWNTO 0); 
 
 BEGIN
 
@@ -54,31 +60,31 @@ draw_block_i 	: ENTITY draw_any_octant
 	PORT MAP(
 		-- IN
 		clk    => clk,
-		resetx => oreset,
-		draw   => odraw,
-		xbias  => oxbias1,
-		xin    => oxin,
-		yin    => oyin,
-		swapxy => oswapxy,
-		negx   => onegx,
-		negy   => onegy,
+		resetx => draw_reset,
+		draw   => draw,
+		xbias  => xbias,
+		xin    => dxin,
+		yin    => dyin,
+		swapxy => swapxy,
+		negx   => negx,
+		negy   => negy,
 		-- OUT
-		done   => odone,
-		x      => ox1,
-		y      => oy1
+		done   => draw_done,
+		x      => draw_x,
+		y      => draw_y
 		);
 
 -- Set useful signals
-SIGS: PROCESS()
+SIGS: PROCESS(hdb)
 BEGIN
 	op  <= hdb(3+xsize+ysize DOWNTO 2+xsize+ysize);
 	pen <= hdb(1 DOWNTO 0);
 	xin <= hdb(1+xsize+ysize DOWNTO 2+ysize);
 	yin <= hdb(1+ysize DOWNTO 2);
-END
+END PROCESS SIGS;
 
 -- Configure draw octant - Combinational
-OCT: PROCESS(hdb, penx, peny)
+OCT: PROCESS(xin, yin, penx, peny)
 BEGIN
 	xbias <= '1';
 	
@@ -95,7 +101,6 @@ BEGIN
 		negx <= '0';
 	END IF;
 
-
 	-- Is y negative?
 	IF (peny > yin) THEN 
 		negy <= '1';
@@ -109,15 +114,60 @@ END PROCESS OCT;
 -- State Combinational Logic
 STATE: PROCESS()
 BEGIN
-	--defaults
+	-- defaults
 	nstate <= state;
-
+	
+	-- First, is the input valid?
+	IF (hdb_dav = '1') THEN
+  
 	CASE state IS
-		WHEN receiving =>
-			;	
-		WHEN drawing => -- completes drawing operation
-			;
+		WHEN listen =>
+			hdb_dav <= '0';
+			startcmd <= '0';
+			
+			-- check op and deal with it
+			CASE op IS
+				WHEN '00' => -- Move pen
+					penx <= xin;
+					peny <= yin;
+
+				WHEN '01' => -- Draw
+					-- Send start postion to draw_octant
+					hdb_dav <= '1';
+					draw_reset <= '1';
+					dxin <= penx;
+					dyin <= peny;
+					nstate <= draw_start;
+
+				WHEN others => -- Others (give to RCB)
+					
+								
+
+			END CASE;
+
+		WHEN draw_start =>
+			-- Send end position to draw_octant
+			draw_reset <= '0';
+			draw <= '1';
+			dxin <= xin;
+			dyin <= yin;
+			nstate <= draw_run;
+
+		WHEN draw_run =>
+			-- Run draw sending result to RCB
+			rcbcmd <= '0'.pen;
+			x <= draw_x;
+			y <= draw_y;			
+			startcmd <= '1';
+
+			-- Check if finished
+			IF (draw_done = '1') THEN
+				nstate <= listen;
+			END IF:
+						
 	END CASE;
+
+	END IF
 
 END PROCESS STATE;
 
@@ -128,7 +178,7 @@ BEGIN
 WAIT UNTIL clk'EVENT AND clk = '1';
 	state <= nstate;
 	IF reset = '1' THEN
-		state <= waits; -- sychronous reset
+		state <= listen; -- sychronous reset
 	END IF;
 END PROCESS FSM;
 
