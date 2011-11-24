@@ -6,11 +6,12 @@ USE work.pix_cache_pak.ALL;
 
 ENTITY pix_word_cache IS
   GENERIC(
-	w_size : INTEGER := 4
+	w_size : INTEGER := 4;
+	p_size : INTEGER := 4
   );
   PORT(
     clk, reset, pw, empty : IN  std_logic;
-    pixnum                : IN  std_logic_vector(w_size - 1 DOWNTO 0);
+    pixnum                : IN  std_logic_vector(p_size - 1 DOWNTO 0);
     pixopin               : IN  pixop_t;
     pixword               : IN  std_logic_vector(w_size - 1 DOWNTO 0);
     store                 : OUT store_t;
