@@ -1,0 +1,360 @@
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2011.11.20)  25 NOV 2011 11:27
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**RCBcodereview
+(./RCBcodereview.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2009-06-19, ngerman-x-2009-06-19, afrikaans, ancientgreek, ibycus, arabi
+c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
+h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
+h, french, galician, german, ngerman, swissgerman, monogreek, greek, hungarian,
+ icelandic, assamese, bengali, gujarati, hindi, kannada, malayalam, marathi, or
+iya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian, kurmanji,
+ lao, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, pol
+ish, portuguese, romanian, russian, sanskrit, serbian, serbianc, slovak, sloven
+ian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, welsh, loaded
+.
+(/usr/share/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+(/usr/share/texmf-dist/tex/latex/base/size11.clo
+File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/share/texmf-dist/tex/latex/latexconfig/graphics.cfg
+File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
+)
+Package graphics Info: Driver file: pdftex.def on input line 91.
+
+(/usr/share/texmf-dist/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/message (HO)
+)
+(/usr/share/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+Package: ltxcmds 2011/04/18 v1.20 LaTeX kernel commands for general use (HO)
+)
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+(/usr/share/texmf-dist/tex/latex/pdfpages/pdfpages.sty
+Package: pdfpages 2011/03/10 v0.4n Insert pages of external PDF documents (AM)
+
+(/usr/share/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(/usr/share/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2007/08/22 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count88
+\calc@Bcount=\count89
+\calc@Adimen=\dimen105
+\calc@Bdimen=\dimen106
+\calc@Askip=\skip43
+\calc@Bskip=\skip44
+LaTeX Info: Redefining \setlength on input line 76.
+LaTeX Info: Redefining \addtolength on input line 77.
+\calc@Ccount=\count90
+\calc@Cskip=\skip45
+)
+(/usr/share/texmf-dist/tex/latex/eso-pic/eso-pic.sty
+Package: eso-pic 2010/10/06 v2.0c eso-pic (RN)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/atbegshi.sty
+Package: atbegshi 2011/01/30 v1.15 At begin shipout hook (HO)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in PDF mode is detected.
+))
+(/usr/share/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
+
+(/usr/share/texmf-dist/tex/latex/latexconfig/color.cfg
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1337.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1341.
+Package xcolor Info: Model `RGB' extended on input line 1353.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1355.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1356.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1357.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1358.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1359.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1360.
+))
+(/usr/share/texmf-dist/tex/latex/pdfpages/pppdftex.def
+File: pppdftex.def 2011/03/10 v0.4n Pdfpages driver for pdfTeX (AM)
+)
+\AM@pagebox=\box26
+\AM@toc@title=\toks15
+\c@AM@survey=\count91
+\AM@templatesizebox=\box27
+) (./RCBcodereview.aux)
+\openout1 = `RCBcodereview.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+
+(/usr/share/texmf-dist/tex/context/base/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count92
+\scratchdimen=\dimen107
+\scratchbox=\box28
+\nofMPsegments=\count93
+\nofMParguments=\count94
+\everyMPshowfont=\toks16
+\MPscratchCnt=\count95
+\MPscratchDim=\dimen108
+\MPnumerator=\count96
+\makeMPintoPDFobject=\count97
+\everyMPtoPDFconversion=\toks17
+) (/usr/share/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+Package: pdftexcmds 2011/04/22 v0.16 Utilities of pdfTeX for LuaTeX (HO)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/ifluatex.sty
+Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(/usr/share/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+
+(/usr/share/texmf-dist/tex/latex/oberdiek/grfext.sty
+Package: grfext 2010/08/19 v1.1 Managing graphics extensions (HO)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
+Package: kvdefinekeys 2011/04/07 v1.3 Defining keys (HO)
+))
+(/usr/share/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2010/12/23 v3.10 Keyval support for LaTeX options (HO)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+Package: kvsetkeys 2011/04/07 v1.13 Key value parser (HO)
+
+(/usr/share/texmf-dist/tex/generic/oberdiek/etexcmds.sty
+Package: etexcmds 2011/02/16 v1.5 Prefix for e-TeX command names (HO)
+Package etexcmds Info: Could not find \expanded.
+(etexcmds)             That can mean that you are not using pdfTeX 1.50 or
+(etexcmds)             that some package has redefined \expanded.
+(etexcmds)             In the latter case, load this package earlier.
+)))
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 452.
+
+(/usr/share/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+\AtBeginShipoutBox=\box29
+
+<RCBDocumentation.pdf, id=3, page=1, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 1>
+Package pdftex.def Info: RCBDocumentation.pdf, page1 used on input line 8.
+(pdftex.def)             Requested size: 597.22978pt x 845.15544pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 1>
+Package pdftex.def Info: RCBDocumentation.pdf, page1 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 1>
+Package pdftex.def Info: RCBDocumentation.pdf, page1 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 1>
+Package pdftex.def Info: RCBDocumentation.pdf, page1 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 1>
+Package pdftex.def Info: RCBDocumentation.pdf, page1 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [1
+
+ <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=38, page=2, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 2>
+Package pdftex.def Info: RCBDocumentation.pdf, page2 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 2>
+Package pdftex.def Info: RCBDocumentation.pdf, page2 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 2>
+Package pdftex.def Info: RCBDocumentation.pdf, page2 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [2 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=135, page=3, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 3>
+Package pdftex.def Info: RCBDocumentation.pdf, page3 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 3>
+Package pdftex.def Info: RCBDocumentation.pdf, page3 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 3>
+Package pdftex.def Info: RCBDocumentation.pdf, page3 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [3 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=144, page=4, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 4>
+Package pdftex.def Info: RCBDocumentation.pdf, page4 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 4>
+Package pdftex.def Info: RCBDocumentation.pdf, page4 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 4>
+Package pdftex.def Info: RCBDocumentation.pdf, page4 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [4 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=148, page=5, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 5>
+Package pdftex.def Info: RCBDocumentation.pdf, page5 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 5>
+Package pdftex.def Info: RCBDocumentation.pdf, page5 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 5>
+Package pdftex.def Info: RCBDocumentation.pdf, page5 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [5 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=329, page=6, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 6>
+Package pdftex.def Info: RCBDocumentation.pdf, page6 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 6>
+Package pdftex.def Info: RCBDocumentation.pdf, page6 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 6>
+Package pdftex.def Info: RCBDocumentation.pdf, page6 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [6 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=333, page=7, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 7>
+Package pdftex.def Info: RCBDocumentation.pdf, page7 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 7>
+Package pdftex.def Info: RCBDocumentation.pdf, page7 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 7>
+Package pdftex.def Info: RCBDocumentation.pdf, page7 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [7 <./RCBDocumentation.pdf>]
+<RCBDocumentation.pdf, id=338, page=8, 597.23125pt x 845.1575pt>
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 8>
+Package pdftex.def Info: RCBDocumentation.pdf, page8 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+ <use RCBDocumentation.pdf, page 8>
+Package pdftex.def Info: RCBDocumentation.pdf, page8 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+File: RCBDocumentation.pdf Graphic file (type pdf)
+
+<use RCBDocumentation.pdf, page 8>
+Package pdftex.def Info: RCBDocumentation.pdf, page8 used on input line 8.
+(pdftex.def)             Requested size: 597.25711pt x 845.19412pt.
+ [8 <./RCBDocumentation.pdf>]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 9.
+ [9{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./RCBcodereview.aux) )
+ 
+Here is how much of TeX's memory you used:
+ 2702 strings out of 493633
+ 38182 string characters out of 3148831
+ 98942 words of memory out of 3000000
+ 5984 multiletter control sequences out of 15000+200000
+ 7580 words of font info for 27 fonts, out of 3000000 for 9000
+ 831 hyphenation exceptions out of 8191
+ 41i,18n,47p,258b,397s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr17.pfb>
+Output written on RCBcodereview.pdf (9 pages, 628101 bytes).
+PDF statistics:
+ 364 PDF objects out of 1000 (max. 8388607)
+ 196 compressed objects within 2 object streams
+ 0 named destinations out of 1000 (max. 500000)
+ 51 words of extra memory for PDF output out of 10000 (max. 10000000)
+
