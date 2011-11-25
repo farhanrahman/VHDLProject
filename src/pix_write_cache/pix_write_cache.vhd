@@ -66,5 +66,5 @@ BEGIN
     END LOOP;
   END IF;
 END PROCESS din_compute;
-vdin <= din;
+
 END ARCHITECTURE rtl;
