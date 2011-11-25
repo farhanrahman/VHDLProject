@@ -5,10 +5,10 @@ USE IEEE.numeric_std.ALL;
 
 ENTITY draw_octant IS
   PORT(
-    clk, resetx, draw, xbias : IN  std_logic;
-    xin, yin                 : IN  std_logic_vector(11 DOWNTO 0);
-    done                     : OUT std_logic;
-    x, y                     : OUT std_logic_vector(11 DOWNTO 0)
+    clk, resetx, delay, draw, xbias : IN  std_logic;
+    xin, yin                 		: IN  std_logic_vector(11 DOWNTO 0);
+    done                     		: OUT std_logic;
+    x, y                     		: OUT std_logic_vector(11 DOWNTO 0)
     );
 END ENTITY draw_octant;
 
@@ -52,7 +52,7 @@ BEGIN
   R1 : PROCESS
   
   BEGIN
-		WAIT UNTIL clk'EVENT AND clk = '1';
+		WAIT UNTIL clk'EVENT AND clk = '1' AND delay = '0';
 		IF (resetx = '1') THEN -- RESET
 			error <= "000000000000"; 
 			x1 <= xin;
