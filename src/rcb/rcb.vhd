@@ -45,7 +45,7 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL waitx   : std_logic;
 	SIGNAL vwrite1 : std_logic;
 	
-	TYPE states IS (s0,s1,s2);
+	TYPE states IS (s0,s1,s2,s3);
 	SIGNAL state     : states;
 	SIGNAL nstate    : states;
 	SIGNAL flush_cmd : std_logic;
@@ -119,7 +119,7 @@ BEGIN
 
 END PROCESS P1;
 
-FSM : PROCESS (reset, rcbcmd, ready, state, delaycmd1, vwrite1, startcmd)
+FSM : PROCESS (reset, rcbcmd, ready, state, delaycmd1, vwrite1, startcmd, waitx)
   VARIABLE flush : std_logic;
   VARIABLE draw  : std_logic;
   VARIABLE clear : std_logic; 
@@ -127,51 +127,75 @@ BEGIN
   flush := NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
   clear := rcbcmd(2);
   draw  := (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
+  flush_cmd <= '0';
   IF reset = '1' THEN
     nstate <= s0;
   ELSE
     CASE state IS
       WHEN s0 =>
+        
         IF startcmd = '1' THEN
+          
           IF clear = '1' THEN
-            nstate <= s0;
+            nstate <= s0; --clearscreen not implemented yet
           END IF; -- clear = '1'
+          
           IF flush = '1' THEN
-            nstate <= s1;
+            nstate    <= s1;
+            flush_cmd <= '1';
           END IF; --flush = '1'
+          
           IF draw = '1' THEN
             nstate <= s2;
           END IF; -- draw = '1'
+          
         END IF; --startcmd = '1'
+      
       WHEN s1 =>
-        IF vwrite1 = '0' THEN
+        
+        IF waitx = '1' THEN
           nstate <= s1;
-        END IF; --vwrite = '0'
-        IF startcmd = '1' THEN
-          IF vwrite1 = '1' AND flush = '1' THEN
-            nstate <= s1;
-          END IF; --vwrite = '1' AND flush = '1'
-          IF vwrite1 = '0' THEN
-            nstate <= s1;
-          END IF; --vwrite = '0'
-        ELSE --startcmd = '0'
-          IF vwrite1 <= '1' THEN 
+          flush_cmd <= '1';
+        ELSE -- waitx = '0'
+          nstate <= s3;  
+        END IF; -- waitx = '1'
+
+      WHEN s3 =>
+      
+        IF vwrite1 = '1' THEN
+          IF startcmd = '0' THEN
             nstate <= s0;
-          END IF; --vwrite = '1'
-        END IF; --startcmd = '1' 
+          END IF; --startcmd = '0'   
+        ELSE --vwrite1 = '0'
+         nstate <= s3;
+        END IF; --vwrite1 = '1'
+        
+        IF startcmd = '1' AND flush = '1' THEN
+          nstate    <= s1;
+          flush_cmd <= '1';
+        END IF; --startcmd = '1' AND flush = '1'
+               
       WHEN s2 =>
+        
         IF ready = '0' THEN
           nstate <= s1;
+          flush_cmd <= '1';
         END IF; --ready = '0'
+        
         IF startcmd = '1' THEN
+        
           IF delaycmd1 = '0'  AND draw = '1' THEN
             nstate <= s2;
           END IF; --delaycmd = '0'
+        
         ELSE --startcmd = '0'
+          
           IF delaycmd1 = '0' THEN
             nstate <= s0;
           END IF; --delaycmd = '0'
+        
         END IF; --startmcd = '1'
+      
       WHEN OTHERS => nstate <= s0;
     END CASE;
   END IF;
@@ -186,7 +210,7 @@ END PROCESS C1;
 
 -----------DATAFLOW STATEMENTS-------
 delaycmd <= NOT ready AND waitx;
-empty <= ready;
-start <= ready;
+empty <= NOT ready OR flush_cmd;
+start <= NOT ready OR flush_cmd;
 
 END ARCHITECTURE behav;
