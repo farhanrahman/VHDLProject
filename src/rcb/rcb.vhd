@@ -1,7 +1,6 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
-USE work.vram;
 USE work.pix_word_cache;
 USE work.ram_fsm;
 USE work.pix_cache_pak.ALL;
