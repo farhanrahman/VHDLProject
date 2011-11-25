@@ -25,7 +25,6 @@ END pix_write_cache;
 ARCHITECTURE rtl OF pix_write_cache IS
 	SIGNAL add_temp		    : std_logic_vector(a_size - 1 DOWNTO 0);
 	SIGNAL store_del	    : std_logic_vector(w_size - 1 DOWNTO 0);
-	SIGNAL din           : std_logic_vector(w_size - 1 DOWNTO 0);
 BEGIN
 
 ramfsm : ENTITY work.ram_fsm
@@ -47,12 +46,12 @@ WAIT UNTIL falling_edge(clk);
   END IF;
 END PROCESS address_delay;
 
-din_compute : PROCESS
+vdin_compute : PROCESS
   VARIABLE res  : pixop_t;
 BEGIN
   WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN 
-    din <= (OTHERS=>'0');
+    vdin <= (OTHERS=>'0');
   ELSE
     FOR i IN store'RANGE LOOP
       res := store(i);
@@ -65,6 +64,6 @@ BEGIN
       END CASE;
     END LOOP;
   END IF;
-END PROCESS din_compute;
+END PROCESS vdin_compute;
 
 END ARCHITECTURE rtl;
