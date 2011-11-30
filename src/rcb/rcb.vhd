@@ -9,17 +9,18 @@ USE work.pix_write_cache;
 
 ENTITY rcb IS
 	GENERIC(
-		w_size  : INTEGER := 8;
-		p_size	 : INTEGER := 4
+		a_size  : INTEGER := 8;
+		p_size	: INTEGER := 4;
+		w_size 	: INTEGER := 16
 	);
 	
 	PORT(
-		clk, reset	 : IN  std_logic;
-		x,y 		      : IN  std_logic_vector(5 DOWNTO 0);
-		rcbcmd 		   : IN  std_logic_vector(2 DOWNTO 0);
-		startcmd 	  : IN  std_logic;
-		delaycmd 	  : OUT std_logic;
-		vaddr       : OUT std_logic_vector(w_size - 1 DOWNTO 0);
+		clk, reset	: IN  std_logic;
+		x,y 		: IN  std_logic_vector(5 DOWNTO 0);
+		rcbcmd 		: IN  std_logic_vector(2 DOWNTO 0);
+		startcmd 	: IN  std_logic;
+		delaycmd 	: OUT std_logic;
+		vaddr       : OUT std_logic_vector(a_size - 1 DOWNTO 0);
 		vdin        : OUT std_logic_vector(w_size - 1 DOWNTO 0);
 		vdout       : IN  std_logic_vector(w_size - 1 DOWNTO 0);
 		vwrite      : OUT std_logic
@@ -30,21 +31,21 @@ END ENTITY rcb;
 ARCHITECTURE behav OF rcb IS
   SIGNAL delaycmd1 : std_logic;
   
-	SIGNAL pixword 	 : std_logic_vector(w_size - 1 DOWNTO 0);
-	SIGNAL pixnum 	  : std_logic_vector(p_size - 1 DOWNTO 0);
+	SIGNAL pixword 	 : std_logic_vector(a_size - 1 DOWNTO 0);
+	SIGNAL pixnum 	 : std_logic_vector(p_size - 1 DOWNTO 0);
 	SIGNAL pixopin   : pixop_t;
 	SIGNAL clean     : std_logic;
-	SIGNAL ready     : std_logic;
+	SIGNAL readyrcb  : std_logic;
 	SIGNAL empty     : std_logic;
 	SIGNAL store     : store_t;
-	SIGNAL word      : std_logic_vector(w_size - 1 DOWNTO 0);
+	SIGNAL word      : std_logic_vector(a_size - 1 DOWNTO 0);
 	
 	
 	SIGNAL start   : std_logic;
 	SIGNAL waitx   : std_logic;
 	SIGNAL vwrite1 : std_logic;
 	
-	TYPE states IS (s0,s1,s2,s3);
+	TYPE states IS (s1,s2,s3,s0);
 	SIGNAL state     : states;
 	SIGNAL nstate    : states;
 	SIGNAL flush_cmd : std_logic;
@@ -53,11 +54,15 @@ ARCHITECTURE behav OF rcb IS
 	ALIAS usg  IS unsigned;
 	ALIAS sg   IS signed;
 	
+	SIGNAL flush : std_logic;
+	SIGNAL draw  : std_logic;
+	SIGNAL clear : std_logic;
+	
 BEGIN
 
 pwordcache : ENTITY pix_word_cache
 	GENERIC MAP(
-		w_size => w_size,
+		w_size => a_size,
 		p_size => p_size
 	)
 	PORT MAP(
@@ -65,43 +70,39 @@ pwordcache : ENTITY pix_word_cache
 		reset   => reset, 
 		pw      => startcmd,
 		empty   => empty,
-    pixnum  => pixnum,
-    pixopin => pixopin,
-    pixword => pixword,
-    store   => store,
-    word    => word,
-    clean   => clean,
-    ready   => ready
+		pixnum  => pixnum,
+		pixopin => pixopin,
+		pixword => pixword,
+		store   => store,
+		word    => word,
+		clean   => clean,
+		ready   => readyrcb
 	);
 	
 
 pwritecache : ENTITY pix_write_cache
   PORT MAP(
-	 clk     => clk,
-	 reset   => reset,
-	 start	  => start,
-	 store	  => store,
+	 clk     	=> clk,
+	 reset   	=> reset,
+	 start	  	=> start,
+	 store	  	=> store,
 	 address	=> word,
-	 waitx	  => waitx,
-	 vwrite	 => vwrite1,
-	 vdout	  => vdout,
-	 vdin    => vdin, 				         
-	 vaddr   => vaddr  
+	 waitx	  	=> waitx,
+	 vwrite	 	=> vwrite1,
+	 vdout	  	=> vdout,
+	 vdin    	=> vdin, 				         
+	 vaddr   	=> vaddr  
   );
 
 
 P1 : PROCESS (x,y,rcbcmd)
-	VARIABLE temp_pixword 	: std_logic_vector(w_size - 1 DOWNTO 0);
-	VARIABLE temp_pixnum	  : std_logic_vector(p_size - 1 DOWNTO 0);
-	VARIABLE temp_y		  	   : std_logic_vector(w_size - 1 DOWNTO 0);
-	VARIABLE temp_y_pix		  : std_logic_vector(p_size - 1 DOWNTO 0);
-	VARIABLE pix_cmd       : std_logic_vector(1 DOWNTO 0);
-BEGIN
-	temp_y       := slv(resize(sg(y(5 DOWNTO 2)), w_size) sll 4);
-	temp_y_pix   := slv(resize(sg(y(1 DOWNTO 0)), p_size) sll 2);
+	VARIABLE pix_cmd       		: std_logic_vector(1 DOWNTO 0);
+BEGIN	
+	pixword(7 DOWNTO 4) <= y(5 DOWNTO 2);
+	pixword(3 DOWNTO 0) <= x(5 DOWNTO 2);
 	
-	temp_pixword := slv(sg(resize(sg(x(5 DOWNTO 2)), w_size)) + sg(temp_y));
-	temp_pixnum  := slv(sg(resize(sg(x(1 DOWNTO 0)), p_size)) + sg(temp_y_pix));
+	pixnum(3 DOWNTO 2) <= y(1 DOWNTO 0);
+	pixnum(1 DOWNTO 0) <= x(1 DOWNTO 0);
 	
 	pix_cmd := rcbcmd(1) & rcbcmd(0);
 	
@@ -112,23 +113,26 @@ BEGIN
 	  WHEN "11" => pixopin <= invert;
 	  WHEN OTHERS => NULL;   
 	 END CASE;
-	
-	pixword  <= temp_pixword;
-	pixnum   <= temp_pixnum;
-
 END PROCESS P1;
 
-FSM : PROCESS (reset, rcbcmd, ready, state, delaycmd1, vwrite1, startcmd, waitx)
-  VARIABLE flush : std_logic;
-  VARIABLE draw  : std_logic;
-  VARIABLE clear : std_logic; 
+FLUSH_PARSE : PROCESS (rcbcmd)
 BEGIN
-  flush := NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
-  clear := rcbcmd(2);
-  draw  := (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
+	flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
+END PROCESS FLUSH_PARSE;
+
+PARSE_CMD : PROCESS(rcbcmd, flush)
+BEGIN
+  clear <= rcbcmd(2);
+  draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
+END PROCESS PARSE_CMD;
+
+FSM : PROCESS (reset, readyrcb, state, delaycmd1, vwrite1, startcmd, waitx, flush, clear, draw)
+BEGIN
   flush_cmd <= '0';
+  
+  nstate <= state;
   IF reset = '1' THEN
-    nstate <= s0;
+    nstate <= state;
   ELSE
     CASE state IS
       WHEN s0 =>
@@ -176,7 +180,7 @@ BEGIN
                
       WHEN s2 =>
         
-        IF ready = '0' THEN
+        IF readyrcb = '0' THEN
           nstate <= s1;
           flush_cmd <= '1';
         END IF; --ready = '0'
@@ -194,22 +198,37 @@ BEGIN
           END IF; --delaycmd = '0'
         
         END IF; --startmcd = '1'
-      
-      WHEN OTHERS => nstate <= s0;
     END CASE;
   END IF;
 END PROCESS FSM;
-vwrite    <= vwrite1;
-delaycmd  <= delaycmd1;
-C1 : PROCESS
+
+ASSIGN_OUT : PROCESS (vwrite1, delaycmd1)
+BEGIN
+	vwrite    <= vwrite1;
+	delaycmd  <= delaycmd1;
+END PROCESS ASSIGN_OUT;
+
+NEXT_STATE : PROCESS
 BEGIN
 WAIT UNTIL rising_edge(clk);
   state <= nstate;
-END PROCESS C1;
+END PROCESS NEXT_STATE;
 
------------DATAFLOW STATEMENTS-------
-delaycmd <= NOT ready AND waitx;
-empty <= NOT ready OR flush_cmd;
-start <= NOT ready OR flush_cmd;
+ASSIGN_DELAYCMD : PROCESS (readyrcb, waitx)
+BEGIN
+	delaycmd1 <= NOT readyrcb AND waitx;
+END PROCESS ASSIGN_DELAYCMD;
+
+PIXWORD_FLUSH : PROCESS
+BEGIN
+WAIT UNTIL rising_edge(clk);
+	empty <= NOT readyrcb OR flush_cmd;
+END PROCESS PIXWORD_FLUSH;
+
+RAM_FSM_START : PROCESS
+BEGIN
+WAIT UNTIL rising_edge(clk);
+	start <= NOT readyrcb OR flush_cmd;
+END PROCESS RAM_FSM_START;
 
 END ARCHITECTURE behav;

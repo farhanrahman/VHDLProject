@@ -10,21 +10,19 @@ GENERIC(
 	w_size : INTEGER := 16
 );
 PORT(
-	clk, reset, start	 : IN 	std_logic;
-	store				          : IN 	store_t;
+	clk, reset, start	 		: IN 	std_logic;
+	store				        : IN 	store_t;
 	address				        : IN 	std_logic_vector(a_size - 1 DOWNTO 0);
-	waitx				          : OUT std_logic;
-	vwrite				         : OUT std_logic;
-	vdout				          : IN 	std_logic_vector(w_size - 1 DOWNTO 0);
-	vdin 				          : OUT std_logic_vector(w_size - 1 DOWNTO 0);
-	vaddr				          : OUT std_logic_vector(a_size - 1 DOWNTO 0)
+	waitx				        : OUT 	std_logic;
+	vwrite				        : OUT 	std_logic;
+	vdout				        : IN 	std_logic_vector(w_size - 1 DOWNTO 0);
+	vdin 				        : OUT 	std_logic_vector(w_size - 1 DOWNTO 0);
+	vaddr				        : OUT 	std_logic_vector(a_size - 1 DOWNTO 0)
 );
 
 END pix_write_cache;
 
 ARCHITECTURE rtl OF pix_write_cache IS
-	SIGNAL add_temp		    : std_logic_vector(a_size - 1 DOWNTO 0);
-	SIGNAL store_del	    : std_logic_vector(w_size - 1 DOWNTO 0);
 BEGIN
 
 ramfsm : ENTITY work.ram_fsm
@@ -38,7 +36,7 @@ ramfsm : ENTITY work.ram_fsm
 
 address_delay: PROCESS
 BEGIN
-WAIT UNTIL falling_edge(clk);
+WAIT UNTIL clk'EVENT AND clk = '0';
   IF reset = '1' THEN
     vaddr <= (OTHERS=>'0');
   ELSE
@@ -47,15 +45,15 @@ WAIT UNTIL falling_edge(clk);
 END PROCESS address_delay;
 
 vdin_compute : PROCESS
-  VARIABLE res  : pixop_t;
+  --VARIABLE res  : pixop_t;
 BEGIN
-  WAIT UNTIL falling_edge(clk);
+WAIT UNTIL clk'EVENT AND clk = '0';
   IF reset = '1' THEN 
     vdin <= (OTHERS=>'0');
   ELSE
     FOR i IN store'RANGE LOOP
-      res := store(i);
-      CASE res IS
+      --res := store(i);
+      CASE store(i) IS
         WHEN same   => vdin(i) <= vdout(i);
         WHEN invert => vdin(i) <= NOT vdout(i);
         WHEN black  => vdin(i) <= '1';
