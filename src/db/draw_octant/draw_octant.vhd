@@ -4,21 +4,25 @@ USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
 
 ENTITY draw_octant IS
+  GENERIC(
+		size : INTEGER := 12;
+		e_size : INTEGER := 13
+  );
   PORT(
     clk, resetx, delay, draw, xbias : IN  std_logic;
-    xin, yin                 		: IN  std_logic_vector(11 DOWNTO 0);
+    xin, yin                 		: IN  std_logic_vector(size - 1 DOWNTO 0);
     done                     		: OUT std_logic;
-    x, y                     		: OUT std_logic_vector(11 DOWNTO 0)
+    x, y                     		: OUT std_logic_vector(size - 1 DOWNTO 0)
     );
 END ENTITY draw_octant;
 
 ARCHITECTURE comb OF draw_octant IS
 
   SIGNAL done1                    : std_logic;
-  SIGNAL x1, y1                   : std_logic_vector(11 DOWNTO 0);
-  SIGNAL xincr, yincr, xnew, ynew : std_logic_vector(11 DOWNTO 0);
-  SIGNAL error                    : std_logic_vector(11 DOWNTO 0);
-  SIGNAL err1, err2               : std_logic_vector(12 DOWNTO 0);
+  SIGNAL x1, y1                   : std_logic_vector(size - 1 DOWNTO 0);
+  SIGNAL xincr, yincr, xnew, ynew : std_logic_vector(size - 1 DOWNTO 0);
+  SIGNAL error                    : std_logic_vector(size - 1 DOWNTO 0);
+  SIGNAL err1, err2               : std_logic_vector(e_size - 1 DOWNTO 0);
 
   ALIAS slv IS std_logic_vector;
   ALIAS sg	IS signed;
@@ -33,10 +37,10 @@ BEGIN
     
   BEGIN
 		-- err1 = | error + yincr |
-		err1 <= slv(resize(abs(sg(error) + sg(yincr)), 13));
+		err1 <= slv(resize(abs(sg(error) + sg(yincr)), e_size));
 		
 		-- err2 = | error + yincr - xincr |
-		err2 <= slv(resize(abs(sg(error) + sg(yincr) - sg(xincr)), 13));
+		err2 <= slv(resize(abs(sg(error) + sg(yincr) - sg(xincr)), e_size));
 		
 		-- done =  x = xnew and y = ynew
 		IF ((x1 = xnew) and (y1 = ynew) and (resetx = '0') and (draw = '0')) THEN
@@ -54,11 +58,11 @@ BEGIN
   BEGIN
 		WAIT UNTIL clk'EVENT AND clk = '1' AND delay = '0';
 		IF (resetx = '1') THEN -- RESET
-			error <= "000000000000"; 
+			error <= (OTHERS => '0'); 
 			x1 <= xin;
 			y1 <= yin;
-			xincr <= "000000000000";
-			yincr <= "000000000000";
+			xincr <= (OTHERS => '0');
+			yincr <= (OTHERS => '0');
 			xnew <= xin;
 			ynew <= yin;
 		

@@ -59,6 +59,9 @@ BEGIN
 --  0      0      1     ESE
 
 draw_block_i 	: ENTITY draw_any_octant
+	GENERIC MAP(
+		vsize => 6
+	)
 	PORT MAP(
 		-- IN
 		clk    => clk,

@@ -43,6 +43,10 @@ BEGIN
 
 	-- wrapper draw_octant
 	wrapper : ENTITY draw_octant
+	GENERIC MAP(
+		size 	=> vsize,
+		e_size 	=> vsize + 1
+	)
     PORT MAP (
       clk    => clk,
       resetx => resetx,

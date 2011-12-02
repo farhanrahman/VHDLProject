@@ -376,9 +376,9 @@ PACKAGE BODY vdp_pack IS
       END CASE;
 
       CASE pen IS
-         WHEN black  => cmdword(1 DOWNTO 0) := "00";
+         WHEN black  => cmdword(1 DOWNTO 0) := "10";
          WHEN white  => cmdword(1 DOWNTO 0) := "01";
-         WHEN invert => cmdword(1 DOWNTO 0) := "10";
+         WHEN invert => cmdword(1 DOWNTO 0) := "11";
       END CASE;
 
       cmdword(13 DOWNTO 8) := conv_std_logic_vector( x, 6);
@@ -425,9 +425,9 @@ PACKAGE BODY vdp_pack IS
 
 
       CASE cmdword(1 DOWNTO 0) IS
-         WHEN "00"   => pen := black;
+         WHEN "10"   => pen := black;
          WHEN "01"   => pen := white;
-         WHEN "10"   => pen := invert;
+         WHEN "11"   => pen := invert;
          WHEN OTHERS => REPORT "bad pen field for do_command : " &
                            v2s(cmdword(1 DOWNTO 0));
       END CASE;

@@ -6,7 +6,7 @@ PACKAGE config_pack IS
     10 ns; -- period of clock
   
   CONSTANT config_file_name : string :=
-    "full_commands.txt";  -- name of file of VDP commands run this test
+    "test_commands.txt";  -- name of file of VDP commands run this test
   
   CONSTANT config_post_cycles : integer :=
     100;   -- this makes testbench wait after last command is passed to
