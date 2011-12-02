@@ -45,7 +45,7 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL waitx   : std_logic;
 	SIGNAL vwrite1 : std_logic;
 	
-	TYPE states IS (s1,s2,s3,s0);
+	TYPE states IS (s1,s2,s0);
 	SIGNAL state     : states;
 	SIGNAL nstate    : states;
 	SIGNAL flush_cmd : std_logic;
@@ -126,13 +126,13 @@ BEGIN
   draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
 END PROCESS PARSE_CMD;
 
-FSM : PROCESS (reset, readyrcb, state, delaycmd1, vwrite1, startcmd, waitx, flush, clear, draw)
+FSM : PROCESS (reset, readyrcb, state, delaycmd1, startcmd, waitx, flush, clear, draw)
 BEGIN
   flush_cmd <= '0';
   
   nstate <= state;
   IF reset = '1' THEN
-    nstate <= state;
+    nstate <= s0;
   ELSE
     CASE state IS
       WHEN s0 =>
@@ -156,43 +156,34 @@ BEGIN
       
       WHEN s1 =>
         
-        IF waitx = '1' THEN
+        IF waitx = '1' OR (startcmd = '1' AND flush = '1') THEN
           nstate <= s1;
-          flush_cmd <= '1';
-        ELSE -- waitx = '0'
-          nstate <= s3;  
+          flush_cmd <= '1'; 
         END IF; -- waitx = '1'
-
-      WHEN s3 =>
-      
-        IF vwrite1 = '1' THEN
-          IF startcmd = '0' THEN
-            nstate <= s0;
-          END IF; --startcmd = '0'   
-        ELSE --vwrite1 = '0'
-         nstate <= s3;
-        END IF; --vwrite1 = '1'
-        
-        IF startcmd = '1' AND flush = '1' THEN
-          nstate    <= s1;
-          flush_cmd <= '1';
-        END IF; --startcmd = '1' AND flush = '1'
-               
+         
+		IF waitx = '0' AND startcmd = '0' THEN
+          nstate <= s0; 
+		END IF; --waitx = '0' AND startcmd = '0'
+		
+		IF startcmd = '1' AND draw = '1' THEN
+			nstate <= s2;
+		END IF; --startcmd = '1' AND draw = '1'
+			   
       WHEN s2 =>
         
-        IF readyrcb = '0' THEN
+        IF readyrcb = '0' OR (startcmd = '1' AND flush = '1') THEN
           nstate <= s1;
           flush_cmd <= '1';
-        END IF; --ready = '0'
+        END IF; --ready = '0' OR (startcmd = '1' AND flush = '1') 
         
         IF startcmd = '1' THEN
         
-          IF delaycmd1 = '0'  AND draw = '1' THEN
+		  IF delaycmd1 = '0'  AND draw = '1' THEN
             nstate <= s2;
           END IF; --delaycmd = '0'
         
-        ELSE --startcmd = '0'
-          
+		ELSE --startcmd = '0'
+  
           IF delaycmd1 = '0' THEN
             nstate <= s0;
           END IF; --delaycmd = '0'
