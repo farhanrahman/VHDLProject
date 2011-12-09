@@ -6,19 +6,18 @@ USE WORK.ALL;
 
 ENTITY draw_block IS
 	GENERIC(
-		xsize			: INTEGER := 6;
-		ysize			: INTEGER := 6
+		vsize			: INTEGER := 6
 		);
 	PORT(
 		-- HOST INTERFACE
 		clk,reset,hdb_dav	: IN std_logic;
-		hdb					: IN std_logic_vector(3+xsize+ysize DOWNTO 0);	
+		hdb					: IN std_logic_vector(3+(2*vsize) DOWNTO 0);	
 		hdb_busy			: OUT std_logic;
 				
 		-- DB/RCB Interface
 		delaycmd 		: IN std_logic;
-		x				: OUT std_logic_vector(xsize-1 DOWNTO 0);
-		y				: OUT std_logic_vector(ysize-1 DOWNTO 0);
+		x				: OUT std_logic_vector(vsize-1 DOWNTO 0);
+		y				: OUT std_logic_vector(vsize-1 DOWNTO 0);
 		rcbcmd 			: OUT std_logic_vector(2 DOWNTO 0);
 		startcmd 		: OUT std_logic
 	);
@@ -26,23 +25,28 @@ END ENTITY draw_block;
 
 ARCHITECTURE behav OF draw_block IS
 -- FSM Signals
-TYPE   state_t			IS (draw_run, draw_start, listen);
+TYPE   state_t				IS (draw_run, draw_start, listen);
 SIGNAL state, nstate  		: state_t;
 
 -- General Signals
-SIGNAL op, pen			: std_logic_vector(1 DOWNTO 0);
-SIGNAL xin				: std_logic_vector(xsize-1 DOWNTO 0);
-SIGNAL yin				: std_logic_vector(ysize-1 DOWNTO 0); 
-SIGNAL penx				: std_logic_vector(xsize-1 DOWNTO 0);
-SIGNAL peny				: std_logic_vector(ysize-1 DOWNTO 0); 
+SIGNAL op, pen								: std_logic_vector(1 DOWNTO 0);
+SIGNAL xin									: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL yin									: std_logic_vector(vsize-1 DOWNTO 0); 
+SIGNAL penx, penx1							: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL peny, peny1							: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL startcmd1, startcmdreg				: std_logic;
+SIGNAL rcbcmd1, rcbcmdreg					: std_logic_vector(2 DOWNTO 0);
+SIGNAL xreg, x1, yreg, y1					: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL hdb_busy1, hdb_busyreg				: std_logic;
 
 -- draw_octant signals
-SIGNAL swapxy, negx, negy		: std_logic;
-SIGNAL draw_reset, draw_done,	draw, xbias : std_logic;
-SIGNAL draw_x					: std_logic_vector(xsize-1 DOWNTO 0);
-SIGNAL draw_y					: std_logic_vector(ysize-1 DOWNTO 0);
-SIGNAL dxin				   : std_logic_vector(xsize-1 DOWNTO 0);
-SIGNAL dyin			   	: std_logic_vector(ysize-1 DOWNTO 0); 
+SIGNAL swapxy, negx, negy, xbias			: std_logic;
+SIGNAL draw_reset, draw_reset1				: std_logic;
+SIGNAL draw_done, draw_done1, draw, draw1 	: std_logic;
+SIGNAL draw_x								: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL draw_y								: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL dxin, dxin1				   			: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL dyin, dyin1   						: std_logic_vector(vsize-1 DOWNTO 0); 
 
 BEGIN
 
@@ -65,6 +69,7 @@ draw_block_i 	: ENTITY draw_any_octant
 	PORT MAP(
 		-- IN
 		clk    => clk,
+		resetg => reset,
 		resetx => draw_reset,
 		delay  => delaycmd,
 		draw   => draw,
@@ -83,10 +88,10 @@ draw_block_i 	: ENTITY draw_any_octant
 -- Set useful signals
 SIGS: PROCESS(hdb)
 BEGIN
-	op  <= hdb(3+xsize+ysize DOWNTO 2+xsize+ysize);
+	op  <= hdb(3+(2*vsize) DOWNTO 2+(2*vsize));
 	pen <= hdb(1 DOWNTO 0);
-	xin <= hdb(1+xsize+ysize DOWNTO 2+ysize);
-	yin <= hdb(1+ysize DOWNTO 2);
+	xin <= hdb(1+(2*vsize) DOWNTO 2+vsize);
+	yin <= hdb(1+vsize DOWNTO 2);
 END PROCESS SIGS;
 
 -- Configure draw octant - Combinational
@@ -119,42 +124,57 @@ END PROCESS OCT;
 
 
 -- State Combinational Logic
-STATECOMB: PROCESS(state, hdb_dav, xin, yin, penx, peny, pen, draw_x, draw_y, op, draw_done)
+STATECOMB: PROCESS(state, xreg, yreg, dyin, dxin, draw_done, draw_reset, rcbcmdreg, 
+						startcmdreg, peny, penx, hdb_busyreg, hdb_dav, xin, yin, pen,
+						op, draw_x, draw_y)
 BEGIN
 	-- defaults
 	nstate <= state;
+	x1 <= xreg;
+	y1 <= yreg;
+	dyin1 <= dyin;
+	dxin1 <= dxin;
+	draw1 <= '0';
+	draw_done1 <= draw_done;
+	draw_reset1 <= draw_reset;
+	rcbcmd1 <= rcbcmdreg;
+	startcmd1 <= startcmdreg;
+	peny1 <= peny;
+	penx1 <= penx;
+	hdb_busy1 <= hdb_busyreg;
 	
+	-- NEED TO WORK OUT BEST WAY TO DO THIS
 	-- First, is the input valid?
 	IF (hdb_dav = '1') THEN
   
 	CASE state IS
 		WHEN listen =>
-			hdb_busy <= '0';
-			startcmd <= '0';
+			hdb_busy1 <= '0';
+			startcmd1 <= '0';
 			
 			-- check op and deal with it
 			CASE op IS
 				WHEN "00" => -- Move pen
-					penx <= xin;
-					peny <= yin;
+					penx1 <= xin;
+					peny1 <= yin;
 
 				WHEN "01" => -- Draw
 					-- Send start postion to draw_octant
-					hdb_busy <= '1';
-					draw_reset <= '1';
-					dxin <= penx;
-					dyin <= peny;
+					hdb_busy1 <= '1';
+					draw_reset1 <= '1';
+					dxin1 <= penx;
+					dyin1 <= peny;
 					nstate <= draw_start;
 
 				WHEN "10" => -- Clear
-					x <= xin;
-					y <= yin;
-					rcbcmd <= "1" & pen;
-					startcmd <= '1';	
+					x1 <= xin;
+					y1 <= yin;
+					rcbcmd1 <= "1" & pen;
+					startcmd1 <= '1';	
 
 				WHEN "11" => -- Flush
-					rcbcmd <= "000";
-					startcmd <= '1';
+					rcbcmd1 <= "000";
+					startcmd1 <= '1';
 					
 				WHEN others =>
 				  null;
@@ -163,18 +183,19 @@ BEGIN
 
 		WHEN draw_start =>
 			-- Send end position to draw_octant
-			draw_reset <= '0';
-			draw <= '1';
-			dxin <= xin;
-			dyin <= yin;
+			draw_reset1 <= '0';
+			draw1 <= '1';
+			dxin1 <= xin;
+			dyin1 <= yin;
 			nstate <= draw_run;
 
 		WHEN draw_run =>
 			-- Run draw sending result to RCB
-			rcbcmd <= "0" & pen;
-			x <= draw_x;
-			y <= draw_y;			
-			startcmd <= '1';
+			draw1 <= '0';
+			rcbcmd1 <= "0" & pen;
+			x1 <= draw_x;
+			y1 <= draw_y;			
+			startcmd1 <= '1';
 
 			-- Check if finished
 			IF (draw_done = '1') THEN
@@ -182,7 +203,7 @@ BEGIN
 			END IF;
 						
 	END CASE;
-
+	
 	END IF;
 
 END PROCESS STATECOMB;
@@ -191,11 +212,32 @@ END PROCESS STATECOMB;
 -- State change clocked
 FSM: PROCESS
 BEGIN
-WAIT UNTIL clk'EVENT AND clk = '1' AND delaycmd ='0';
-	state <= nstate;
+WAIT UNTIL clk'EVENT AND clk = '1';
+	-- Sychronous Reset
 	IF reset = '1' THEN
-		state <= listen; -- sychronous reset
-	END IF;
+		state <= listen;
+	END IF; 
+
+	-- Update registers
+	state <= nstate;
+	penx <= penx1;
+	peny <= peny1;
+	startcmd <= startcmd1;
+	startcmdreg <= startcmd1;
+	rcbcmd <= rcbcmd1;
+	rcbcmdreg <= rcbcmd1;
+	dxin <= dxin1;
+	dyin <= dyin1;
+	draw <= draw1;
+	draw_reset <= draw_reset1;
+	xreg <= x1;
+	yreg <= y1;
+	x <= x1;
+	y <= y1;
+	hdb_busy <= hdb_busy1;
+	hdb_busyreg <= hdb_busy1;
+	
 END PROCESS FSM;
 
 END ARCHITECTURE behav;
+

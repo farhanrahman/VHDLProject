@@ -22,11 +22,11 @@ ENTITY draw_any_octant IS
 
   -- xbias always give nias in x axis direction, so swapxy must invert xbias
   GENERIC(
-    vsize: INTEGER := 12
+    vsize: INTEGER := 6
   );
   
   PORT(
-    clk, resetx, delay, draw, xbias : IN  std_logic;
+    clk, resetg, resetx, delay, draw, xbias : IN  std_logic;
     xin, yin                 : IN  std_logic_vector(vsize-1 DOWNTO 0);
     done                     : OUT std_logic;
     x, y                     : OUT std_logic_vector(vsize-1 DOWNTO 0);
@@ -44,8 +44,7 @@ BEGIN
 	-- wrapper draw_octant
 	wrapper : ENTITY draw_octant
 	GENERIC MAP(
-		size 	=> vsize,
-		e_size 	=> vsize + 1
+		vsize 	=> vsize
 	)
     PORT MAP (
       clk    => clk,
