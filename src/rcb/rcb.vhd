@@ -36,7 +36,7 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL pixopin   : pixop_t;
 	SIGNAL clean     : std_logic;
 	SIGNAL readyrcb  : std_logic;
-	SIGNAL empty     : std_logic;
+--	SIGNAL empty     : std_logic;
 	SIGNAL store     : store_t;
 	SIGNAL word      : std_logic_vector(a_size - 1 DOWNTO 0);
 	
@@ -64,6 +64,8 @@ ARCHITECTURE behav OF rcb IS
 
 	SIGNAL clk_invert		: std_logic;
 	
+	SIGNAL empty_enable		: std_logic := '0';
+	
 BEGIN
 
 pwordcache : ENTITY pix_word_cache
@@ -75,7 +77,7 @@ pwordcache : ENTITY pix_word_cache
 		clk     => clk,
 		reset   => reset, 
 		pw      => startcmd,
-		empty   => empty,
+		empty   => empty_enable,
 		pixnum  => pixnum,
 		pixopin => pixopin,
 		pixword => pixword,
@@ -90,16 +92,17 @@ rfsm : ENTITY ram_fsm
 		timing_on => timing_on
 	)
   PORT MAP(
-	 clk     	=> clk_invert,
-	 reset   	=> reset,
-	 start	  	=> start,
-	 store	  	=> store,
-	 address	=> word,
-	 delay	  	=> waitx,
-	 vwrite	 	=> vwrite1,
-	 vdout	  	=> vdout,
-	 vdin    	=> vdin, 				         
-	 vaddr   	=> vaddr  
+	 clk     		=> clk_invert,
+	 reset   		=> reset,
+	 start	  		=> start,
+	 empty_enable 	=> empty_enable,
+	 store	  		=> store,
+	 address		=> word,
+	 delay	  		=> waitx,
+	 vwrite	 		=> vwrite1,
+	 vdout	  		=> vdout,
+	 vdin    		=> vdin, 				         
+	 vaddr   		=> vaddr  
   );
 
   clk_invert <= NOT clk;
@@ -157,11 +160,19 @@ BEGIN
 	delaycmd1 <= (NOT readyrcb AND waitx);
 END PROCESS ASSIGN_DELAYCMD;
 
-PIXWORD_FLUSH : PROCESS
+--PIXWORD_FLUSH : PROCESS
+--BEGIN
+--WAIT UNTIL rising_edge(clk);
+--	empty <= start;--(NOT readyrcb OR waitx) OR (flush OR waitx);--(NOT readyrcb AND NOT waitx) OR (flush AND NOT waitx);
+--END PROCESS PIXWORD_FLUSH;
+
+EMP_ENABLE : PROCESS
 BEGIN
-WAIT UNTIL rising_edge(clk);
-	empty <= (NOT readyrcb OR waitx) OR (flush OR waitx);--(NOT readyrcb AND NOT waitx) OR (flush AND NOT waitx);
-END PROCESS PIXWORD_FLUSH;
+	WAIT UNTIL rising_edge(start);
+		empty_enable <= '1';
+	WAIT UNTIL falling_edge(clk);
+		empty_enable <= '0';
+END PROCESS EMP_ENABLE;
 
 RAM_FSM_START : PROCESS
 BEGIN

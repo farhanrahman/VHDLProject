@@ -9,7 +9,8 @@ GENERIC(
 	timing_on 	: BOOLEAN := FALSE
 );
 PORT(
-	clk, reset, start	: IN  	std_logic; 
+	clk, reset, start	: IN  	std_logic;
+	empty_enable		: IN 	std_logic;
 	vwrite, delay		: OUT 	std_logic; 
 	store				: IN 	store_t;
 	address				: IN 	std_logic_vector(a_size - 1 DOWNTO 0);	
@@ -118,17 +119,17 @@ BEGIN
 WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN
     vaddr <= (OTHERS=>'0');
-  ELSIF start = '1' AND (state = m1 OR state = mx) THEN--state = m1 THEN
+  ELSIF (state = m1 OR state = mx) THEN--state = m1 THEN
     vaddr <= address;
   END IF;
 END PROCESS address_delay;
 
 store_register : PROCESS
 BEGIN
-WAIT UNTIL rising_edge(clk);
-IF start = '1' AND (state = m1 OR state = mx) THEN
+WAIT UNTIL rising_edge(empty_enable);
+--IF start = '1' THEN--AND (state = m1 OR state = mx) THEN
 	store_reg <= store;
-END IF;
+--END IF;
 END PROCESS store_register;
 
 vdin_compute : PROCESS
