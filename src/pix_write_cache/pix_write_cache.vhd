@@ -36,7 +36,7 @@ ramfsm : ENTITY work.ram_fsm
 
 address_delay: PROCESS
 BEGIN
-WAIT UNTIL clk'EVENT AND clk = '0';
+WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN
     vaddr <= (OTHERS=>'0');
   ELSE
@@ -47,7 +47,7 @@ END PROCESS address_delay;
 vdin_compute : PROCESS
   --VARIABLE res  : pixop_t;
 BEGIN
-WAIT UNTIL clk'EVENT AND clk = '0';
+WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN 
     vdin <= (OTHERS=>'0');
   ELSE

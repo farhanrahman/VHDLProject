@@ -4,21 +4,21 @@ USE IEEE.numeric_std.ALL;
 USE work.pix_word_cache;
 USE work.ram_fsm;
 USE work.pix_cache_pak.ALL;
-USE work.pix_write_cache;
-
 
 ENTITY rcb IS
 	GENERIC(
-		a_size  : INTEGER := 8;
-		p_size	: INTEGER := 4;
-		w_size 	: INTEGER := 16
+		a_size  	: INTEGER := 8;
+		p_size		: INTEGER := 4;
+		w_size 		: INTEGER := 16;
+		x_size		: INTEGER := 6;
+		timing_on 	: BOOLEAN := FALSE
 	);
 	
 	PORT(
 		clk, reset	: IN  std_logic;
-		x,y 		: IN  std_logic_vector(5 DOWNTO 0);
+		x,y 		: IN  std_logic_vector(x_size - 1 DOWNTO 0);
 		rcbcmd 		: IN  std_logic_vector(2 DOWNTO 0);
-		startcmd 	: IN  std_logic;
+		startcmd 	: IN  std_logic; -- need to connect this to fifo
 		delaycmd 	: OUT std_logic;
 		vaddr       : OUT std_logic_vector(a_size - 1 DOWNTO 0);
 		vdin        : OUT std_logic_vector(w_size - 1 DOWNTO 0);
@@ -58,6 +58,12 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL draw  : std_logic;
 	SIGNAL clear : std_logic;
 	
+	SIGNAL pixword1 	 	: std_logic_vector(a_size - 1 DOWNTO 0) := (OTHERS => '0');
+	SIGNAL pixnum1 	 		: std_logic_vector(p_size - 1 DOWNTO 0) := (OTHERS => '0');
+	SIGNAL pixopin1   		: pixop_t := same;
+
+	SIGNAL clk_invert		: std_logic;
+	
 BEGIN
 
 pwordcache : ENTITY pix_word_cache
@@ -79,119 +85,65 @@ pwordcache : ENTITY pix_word_cache
 		ready   => readyrcb
 	);
 	
-
-pwritecache : ENTITY pix_write_cache
+rfsm : ENTITY ram_fsm
+	GENERIC MAP(
+		timing_on => timing_on
+	)
   PORT MAP(
-	 clk     	=> clk,
+	 clk     	=> clk_invert,
 	 reset   	=> reset,
 	 start	  	=> start,
 	 store	  	=> store,
 	 address	=> word,
-	 waitx	  	=> waitx,
+	 delay	  	=> waitx,
 	 vwrite	 	=> vwrite1,
 	 vdout	  	=> vdout,
 	 vdin    	=> vdin, 				         
 	 vaddr   	=> vaddr  
   );
 
+  clk_invert <= NOT clk;
 
-P1 : PROCESS (x,y,rcbcmd)
+PARSE_RCBCMD : PROCESS (x,y,rcbcmd)
 	VARIABLE pix_cmd       		: std_logic_vector(1 DOWNTO 0);
-BEGIN	
-	pixword(7 DOWNTO 4) <= y(5 DOWNTO 2);
-	pixword(3 DOWNTO 0) <= x(5 DOWNTO 2);
+BEGIN
+	pixword1(7 DOWNTO 4) <= y(5 DOWNTO 2);
+	pixword1(3 DOWNTO 0) <= x(5 DOWNTO 2);
 	
-	pixnum(3 DOWNTO 2) <= y(1 DOWNTO 0);
-	pixnum(1 DOWNTO 0) <= x(1 DOWNTO 0);
+	pixnum1(3 DOWNTO 2) <= y(1 DOWNTO 0);
+	pixnum1(1 DOWNTO 0) <= x(1 DOWNTO 0);
 	
 	pix_cmd := rcbcmd(1) & rcbcmd(0);
 	
 	CASE pix_cmd IS
-	  WHEN "00" => pixopin <= same;
-	  WHEN "01" => pixopin <= white;
-	  WHEN "10" => pixopin <= black;
-	  WHEN "11" => pixopin <= invert;
+	  WHEN "00" => pixopin1 <= same;
+	  WHEN "01" => pixopin1 <= white;
+	  WHEN "10" => pixopin1 <= black;
+	  WHEN "11" => pixopin1 <= invert;
 	  WHEN OTHERS => NULL;   
 	 END CASE;
-END PROCESS P1;
+END PROCESS PARSE_RCBCMD;
+pixword <= pixword1; pixnum <=pixnum1; pixopin <= pixopin1;
 
-FLUSH_PARSE : PROCESS (rcbcmd)
+FLUSH_PARSE : PROCESS (rcbcmd, startcmd)
 BEGIN
-	flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
+	IF startcmd = '1' THEN
+		flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
+	ELSE 
+		flush <= '0';
+	END IF;
 END PROCESS FLUSH_PARSE;
 
-PARSE_CMD : PROCESS(rcbcmd, flush)
+PARSE_CMD : PROCESS(rcbcmd, flush, startcmd)
 BEGIN
-  clear <= rcbcmd(2);
-  draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
+	IF startcmd = '1' THEN
+		clear <= rcbcmd(2);
+		draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
+	ELSE
+		clear <= '0';
+		draw <= '0';
+	END IF;
 END PROCESS PARSE_CMD;
-
-FSM : PROCESS (reset, readyrcb, state, delaycmd1, startcmd, waitx, flush, clear, draw)
-BEGIN
-  flush_cmd <= '0';
-  
-  nstate <= state;
-  IF reset = '1' THEN
-    nstate <= s0;
-  ELSE
-    CASE state IS
-      WHEN s0 =>
-        
-        IF startcmd = '1' THEN
-          
-          IF clear = '1' THEN
-            nstate <= s0; --clearscreen not implemented yet
-          END IF; -- clear = '1'
-          
-          IF flush = '1' THEN
-            nstate    <= s1;
-            flush_cmd <= '1';
-          END IF; --flush = '1'
-          
-          IF draw = '1' THEN
-            nstate <= s2;
-          END IF; -- draw = '1'
-          
-        END IF; --startcmd = '1'
-      
-      WHEN s1 =>
-        
-        IF waitx = '1' OR (startcmd = '1' AND flush = '1') THEN
-          nstate <= s1;
-          flush_cmd <= '1'; 
-        END IF; -- waitx = '1'
-         
-		IF waitx = '0' AND startcmd = '0' THEN
-          nstate <= s0; 
-		END IF; --waitx = '0' AND startcmd = '0'
-		
-		IF startcmd = '1' AND draw = '1' THEN
-			nstate <= s2;
-		END IF; --startcmd = '1' AND draw = '1'
-			   
-      WHEN s2 =>
-        
-        IF readyrcb = '0' OR (startcmd = '1' AND flush = '1') THEN
-          nstate <= s1;
-          flush_cmd <= '1';
-        END IF; --ready = '0' OR (startcmd = '1' AND flush = '1') 
-        
-        IF startcmd = '1' THEN
-        
-		  IF delaycmd1 = '0'  AND draw = '1' THEN
-            nstate <= s2;
-          END IF; --delaycmd = '0'
-        
-		ELSE --startcmd = '0'
-  
-          IF delaycmd1 = '0' THEN
-            nstate <= s0;
-          END IF; --delaycmd = '0'
-        
-        END IF; --startmcd = '1'
-    END CASE;
-  END IF;
-END PROCESS FSM;
 
 ASSIGN_OUT : PROCESS (vwrite1, delaycmd1)
 BEGIN
@@ -199,27 +151,23 @@ BEGIN
 	delaycmd  <= delaycmd1;
 END PROCESS ASSIGN_OUT;
 
-NEXT_STATE : PROCESS
-BEGIN
-WAIT UNTIL rising_edge(clk);
-  state <= nstate;
-END PROCESS NEXT_STATE;
 
 ASSIGN_DELAYCMD : PROCESS (readyrcb, waitx)
 BEGIN
-	delaycmd1 <= NOT readyrcb AND waitx;
+	delaycmd1 <= (NOT readyrcb AND waitx);
 END PROCESS ASSIGN_DELAYCMD;
 
 PIXWORD_FLUSH : PROCESS
 BEGIN
 WAIT UNTIL rising_edge(clk);
-	empty <= NOT readyrcb OR flush_cmd;
+	empty <= (NOT readyrcb OR waitx) OR (flush OR waitx);--(NOT readyrcb AND NOT waitx) OR (flush AND NOT waitx);
 END PROCESS PIXWORD_FLUSH;
 
 RAM_FSM_START : PROCESS
 BEGIN
-WAIT UNTIL rising_edge(clk);
-	start <= NOT readyrcb OR flush_cmd;
+WAIT UNTIL rising_edge(clk_invert);
+	start <= (NOT readyrcb OR waitx) OR (flush OR waitx);--empty;--(NOT readyrcb OR waitx) OR (flush OR waitx);--NOT readyrcb OR waitx OR flush;
 END PROCESS RAM_FSM_START;
+
 
 END ARCHITECTURE behav;
