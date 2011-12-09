@@ -30,14 +30,14 @@ SIGNAL state, nstate  		: state_t;
 
 -- General Signals
 SIGNAL op, pen								: std_logic_vector(1 DOWNTO 0);
-SIGNAL xin									: std_logic_vector(vsize-1 DOWNTO 0);
-SIGNAL yin									: std_logic_vector(vsize-1 DOWNTO 0); 
+SIGNAL xin, xin1							: std_logic_vector(vsize-1 DOWNTO 0);
+SIGNAL yin, yin1							: std_logic_vector(vsize-1 DOWNTO 0); 
 SIGNAL penx, penx1							: std_logic_vector(vsize-1 DOWNTO 0);
 SIGNAL peny, peny1							: std_logic_vector(vsize-1 DOWNTO 0);
 SIGNAL startcmd1, startcmdreg				: std_logic;
 SIGNAL rcbcmd1, rcbcmdreg					: std_logic_vector(2 DOWNTO 0);
 SIGNAL xreg, x1, yreg, y1					: std_logic_vector(vsize-1 DOWNTO 0);
-SIGNAL hdb_busy1, hdb_busyreg				: std_logic;
+SIGNAL busy 								: std_logic;
 
 -- draw_octant signals
 SIGNAL swapxy, negx, negy, xbias			: std_logic;
@@ -97,7 +97,11 @@ END PROCESS SIGS;
 -- Configure draw octant - Combinational
 OCT: PROCESS(xin, yin, penx, peny)
 BEGIN
+	-- Defaults
 	xbias <= '1';
+	swapxy <= '0';
+	negx <= '0';
+	negy <= '0';
 	
 	-- Shall we swap xy? reflects on x=y 
 	IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
@@ -125,8 +129,8 @@ END PROCESS OCT;
 
 -- State Combinational Logic
 STATECOMB: PROCESS(state, xreg, yreg, dyin, dxin, draw_done, draw_reset, rcbcmdreg, 
-						startcmdreg, peny, penx, hdb_busyreg, hdb_dav, xin, yin, pen,
-						op, draw_x, draw_y)
+						startcmdreg, peny, penx, hdb_dav, xin, xin1, busy, delaycmd,
+						yin, yin1, pen, op, draw_x, draw_y)
 BEGIN
 	-- defaults
 	nstate <= state;
@@ -141,7 +145,8 @@ BEGIN
 	startcmd1 <= startcmdreg;
 	peny1 <= peny;
 	penx1 <= penx;
-	hdb_busy1 <= hdb_busyreg;
+	busy <= '0';
+	hdb_busy <= busy OR delaycmd;
 	
 	-- NEED TO WORK OUT BEST WAY TO DO THIS
 	-- First, is the input valid?
@@ -149,7 +154,7 @@ BEGIN
   
 	CASE state IS
 		WHEN listen =>
-			hdb_busy1 <= '0';
+			busy <= '0';
 			startcmd1 <= '0';
 			
 			-- check op and deal with it
@@ -160,15 +165,15 @@ BEGIN
 
 				WHEN "01" => -- Draw
 					-- Send start postion to draw_octant
-					hdb_busy1 <= '1';
+					busy <= '1';
 					draw_reset1 <= '1';
 					dxin1 <= penx;
 					dyin1 <= peny;
 					nstate <= draw_start;
 
 				WHEN "10" => -- Clear
-					x1 <= xin;
-					y1 <= yin;
+					x1 <= xin1;
+					y1 <= yin1;
 					rcbcmd1 <= "1" & pen;
 					startcmd1 <= '1';	
 
@@ -183,14 +188,16 @@ BEGIN
 
 		WHEN draw_start =>
 			-- Send end position to draw_octant
+			busy <= '1';
 			draw_reset1 <= '0';
 			draw1 <= '1';
-			dxin1 <= xin;
-			dyin1 <= yin;
+			dxin1 <= xin1;
+			dyin1 <= yin1;
 			nstate <= draw_run;
 
 		WHEN draw_run =>
 			-- Run draw sending result to RCB
+			busy <= '1';
 			draw1 <= '0';
 			rcbcmd1 <= "0" & pen;
 			x1 <= draw_x;
@@ -200,6 +207,7 @@ BEGIN
 			-- Check if finished
 			IF (draw_done = '1') THEN
 				nstate <= listen;
+				busy <= '0';
 			END IF;
 						
 	END CASE;
@@ -213,13 +221,10 @@ END PROCESS STATECOMB;
 FSM: PROCESS
 BEGIN
 WAIT UNTIL clk'EVENT AND clk = '1';
-	-- Sychronous Reset
-	IF reset = '1' THEN
-		state <= listen;
-	END IF; 
-
 	-- Update registers
-	state <= nstate;
+	IF delaycmd = '0' THEN
+		state <= nstate;
+	END IF;
 	penx <= penx1;
 	peny <= peny1;
 	startcmd <= startcmd1;
@@ -234,9 +239,27 @@ WAIT UNTIL clk'EVENT AND clk = '1';
 	yreg <= y1;
 	x <= x1;
 	y <= y1;
-	hdb_busy <= hdb_busy1;
-	hdb_busyreg <= hdb_busy1;
+	xin1 <= xin;
+	yin1 <= yin;
 	
+	-- Sychronous Reset
+	IF reset = '1' THEN
+		state <= listen;
+		penx <= (OTHERS => '0');
+		peny <= (OTHERS => '0');
+		startcmd <= '0';
+		startcmdreg <= '0';
+		rcbcmd <= (OTHERS => '0');
+		rcbcmdreg <= (OTHERS => '0');
+		dxin <= (OTHERS => '0');
+		dyin <= (OTHERS => '0');
+		draw <= '0';
+		draw_reset <= '0';
+		xreg <= (OTHERS => '0');
+		yreg <= (OTHERS => '0');
+		x <= (OTHERS => '0');
+		y <= (OTHERS => '0');
+	END IF; 
 END PROCESS FSM;
 
 END ARCHITECTURE behav;

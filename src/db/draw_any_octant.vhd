@@ -129,7 +129,7 @@ BEGIN
 	R1 : PROCESS -- registered process
 
 	BEGIN
-		WAIT UNTIL clk'EVENT AND clk = '1' AND delay = '0';
+		WAIT UNTIL clk'EVENT AND clk = '1';
 			-- n+1 cycle signals
 			negx1 <= negx;
 			negy1 <= negy;
