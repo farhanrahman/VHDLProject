@@ -2,9 +2,14 @@ LIBRARY IEEE;
 USE ieee.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;  -- add unsigned, signed
 USE work.ALL;
+USE work.pix_cache_pak.ALL;
 
 
 ENTITY ram_fsm_tb is
+  GENERIC (
+	a_size : INTEGER := 8;
+	w_size : INTEGER := 16
+  );
   PORT(z: OUT INTEGER);--included so that estate will be in wave & dataflow
 END ram_fsm_tb;
 
@@ -21,6 +26,12 @@ ARCHITECTURE testbench OF ram_fsm_tb is
    
    ALIAS slv IS std_logic_vector;
    
+   SIGNAL store 			: store_t;
+   SIGNAL address 			: std_logic_vector(a_size - 1 DOWNTO 0);
+   SIGNAL vdout				: std_logic_vector(w_size - 1 DOWNTO 0);
+   SIGNAL vdin 				: std_logic_vector(w_size - 1 DOWNTO 0);
+   SIGNAL vaddr				: std_logic_vector(a_size - 1 DOWNTO 0);	  
+   
 begin
 
 reset_i <= reset_hard or reset;
@@ -31,7 +42,13 @@ reset_i <= reset_hard or reset;
          reset=>reset_i,
          start => start_i,
          delay => delay_i,
-         vwrite => vwrite_i);
+         vwrite => vwrite_i,
+		 store	=> store,
+		 address => address,	
+		 vdout	=> vdout,
+		 vdin 	=> vdin,
+		 vaddr	=> vaddr			 
+		 );
 
 p1_clkgen: process
        begin
@@ -130,5 +147,3 @@ p2_rstgen: process
 
    
 END testbench;
-
-
