@@ -97,7 +97,7 @@ BEGIN
         WHEN OTHERS => NULL;
       END CASE; -- CASE store1(to_integer(unsigned(pixnum))) IS
   WHEN same =>
-          store1(to_integer(unsigned(pixnum))) <= store1(to_integer(unsigned(pixnum)));
+          store1(to_integer(unsigned(pixnum))) <= same;
   WHEN OTHERS =>
           store1(to_integer(unsigned(pixnum))) <= pixopin;
   END CASE; -- CASE pixopin IS            
