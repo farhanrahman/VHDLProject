@@ -36,7 +36,6 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL pixopin   : pixop_t;
 	SIGNAL clean     : std_logic;
 	SIGNAL readyrcb  : std_logic;
---	SIGNAL empty     : std_logic;
 	SIGNAL store     : store_t;
 	SIGNAL word      : std_logic_vector(a_size - 1 DOWNTO 0);
 	
@@ -48,7 +47,6 @@ ARCHITECTURE behav OF rcb IS
 	TYPE states IS (idle,f1,f2,f3);
 	SIGNAL state     : states;
 	SIGNAL nstate    : states;
-	SIGNAL flush_cmd : std_logic;
 	
 	ALIAS slv  IS std_logic_vector;
 	ALIAS usg  IS unsigned;
@@ -68,8 +66,6 @@ ARCHITECTURE behav OF rcb IS
 	
 	SIGNAL done : std_logic;
 	SIGNAL flush_last : std_logic := '0';
-	--SIGNAL start_dummy : std_logic;
-	--SIGNAL empty_enable_dummy : std_logic;
 	
 BEGIN
 
@@ -167,10 +163,6 @@ flush_last <= '1';
 WAIT UNTIL rising_edge(done);
 flush_last <= '0';
 END PROCESS ASSIGN_FLUSH_FOR_LAST;
---ASSIGN_DELAYCMD : PROCESS (readyrcb, waitx)
---BEGIN
---	delaycmd1 <= (NOT readyrcb AND waitx);
---END PROCESS ASSIGN_DELAYCMD;
 
 
 RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, flush_last, startcmd, flush, clean)
@@ -193,12 +185,6 @@ ELSE
 			IF waitx = '0' THEN
 				nstate <= f3;
 			END IF;
---			IF readyrcb = '0' AND waitx = '0' THEN
---				nstate <= f1;
---			END IF;
---			IF readyrcb = '1' AND waitx = '0' THEN
---				nstate <= idle;
---			END IF;
 		WHEN f3 =>
 			IF done = '1' THEN
 				nstate <= idle;
@@ -230,33 +216,5 @@ ELSIF nstate = f3 THEN
 	delaycmd1 <= '1';
 END IF;
 END PROCESS ASSIGN_STATE;
-
-------REMOVE EVERYTHING FROM BELOW-------------
---PIXWORD_FLUSH : PROCESS
---BEGIN
---WAIT UNTIL rising_edge(clk);
---	empty <= start;--(NOT readyrcb OR waitx) OR (flush OR waitx);--(NOT readyrcb AND NOT waitx) OR (flush AND NOT waitx);
---END PROCESS PIXWORD_FLUSH;
-
---EMP_ENABLE : PROCESS
---BEGIN
---	WAIT UNTIL rising_edge(start);
---		empty_enable <= '1';
---	WAIT UNTIL falling_edge(clk);
---		empty_enable <= '0';
-	
-	--WAIT UNTIL falling_edge(readyrcb);
-	--WAIT UNTIL falling_edge(clk);
-	--	empty_enable <= '1';
-	--WAIT UNTIL falling_edge(clk);
-	--	empty_enable <= '0';
---END PROCESS EMP_ENABLE;
-
---RAM_FSM_START : PROCESS
---BEGIN
---WAIT UNTIL rising_edge(clk_invert);
---	start <= (NOT readyrcb OR waitx) OR (flush OR waitx);--empty;--(NOT readyrcb OR waitx) OR (flush OR waitx);--NOT readyrcb OR waitx OR flush;
---END PROCESS RAM_FSM_START;
-
 
 END ARCHITECTURE behav;
