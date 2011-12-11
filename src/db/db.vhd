@@ -173,8 +173,8 @@ BEGIN
 					nstate <= draw_start;
 
 				WHEN "10" => -- Clear
-					x1 <= xin1;
-					y1 <= yin1;
+					x1 <= xin;
+					y1 <= yin;
 					rcbcmd1 <= "1" & pen;
 					startcmd1 <= '1';	
 
