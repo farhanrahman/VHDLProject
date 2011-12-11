@@ -2,6 +2,7 @@ LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 USE work.pix_cache_pak.ALL;
 USE work.config_pack.ALL;
+USE IEEE.numeric_std.ALL;
 ENTITY ram_fsm IS
 GENERIC(
 	a_size 		: INTEGER := 8;
@@ -25,28 +26,28 @@ TYPE   state_t IS (mx, m2, m1, m3);
 SIGNAL state, nstate  	: state_t;
 SIGNAL delay1         	: std_logic;
 SIGNAL vwrite1        	: std_logic;
-SIGNAL lock_for_twp 	: BOOLEAN := FALSE;
-SIGNAL twp_lock			: BOOLEAN := FALSE;
-SIGNAL lock_for_tracc	: BOOLEAN := FALSE;
-SIGNAL tracc_lock		: BOOLEAN := FALSE;
+--SIGNAL lock_for_twp 	: BOOLEAN := FALSE;
+--SIGNAL twp_lock			: BOOLEAN := FALSE;
+--SIGNAL lock_for_tracc	: BOOLEAN := FALSE;
+--SIGNAL tracc_lock		: BOOLEAN := FALSE;
 SIGNAL store_reg		: store_t;
 SIGNAL address_temp 	: std_logic_vector(a_size - 1 DOWNTO 0);
 SIGNAL done1			: std_logic;
-   CONSTANT twp   : TIME := config_clock_period*config_twp;
-   CONSTANT twds  : TIME := twp / 2;
-   CONSTANT tracc : TIME := config_clock_period *config_tracc;
-   CONSTANT taws  : TIME := tracc / 2;
+  -- CONSTANT twp   : TIME := config_clock_period*config_twp;
+  -- CONSTANT twds  : TIME := twp / 2;
+  -- CONSTANT tracc : TIME := config_clock_period *config_tracc;
+  -- CONSTANT taws  : TIME := tracc / 2;
 
 BEGIN
-C: PROCESS(state, reset, start, twp_lock)
+C: PROCESS(state, reset, start)--, twp_lock)
 BEGIN
 delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 	IF reset = '1' THEN
 		nstate <= mx;
 	ELSE
-	IF NOT twp_lock THEN
-		lock_for_twp <= FALSE;
-	END IF;
+--	IF NOT twp_lock THEN
+--		lock_for_twp <= FALSE;
+--	END IF;
 	CASE state IS
 		WHEN mx =>
 --			IF timing_on THEN
@@ -99,12 +100,12 @@ delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 			IF start='1' THEN
 				nstate <= m1;
 				vwrite1 <= '1';
-				lock_for_twp <= TRUE;
+			--	lock_for_twp <= TRUE;
 				done1 <= '1';
 			ELSE
 				nstate <= mx;
 				vwrite1 <= '1';
-				lock_for_twp <= TRUE;
+			--	lock_for_twp <= TRUE;
 				done1 <= '1';
 			END IF;           
 	END CASE;
@@ -169,23 +170,25 @@ WAIT UNTIL falling_edge(clk);
 END PROCESS vdin_compute;
 
 
-TWP_COUNT : PROCESS
-BEGIN
-WAIT UNTIL lock_for_twp;
-twp_lock <= TRUE;
-WAIT FOR twp;
+--TWP_COUNT : PROCESS
+--BEGIN
+--WAIT UNTIL lock_for_twp;
+--twp_lock <= TRUE;
+--WAIT FOR twp;
 --WAIT FOR 10 ns;
-twp_lock <= FALSE;
-END PROCESS TWP_COUNT;
+--twp_lock <= FALSE;
+--END PROCESS TWP_COUNT;
 
-TRACC_COUNT : PROCESS
-BEGIN
-WAIT UNTIL lock_for_tracc;
-tracc_lock <= TRUE;
-WAIT FOR tracc;
-tracc_lock <= FALSE;
-END PROCESS TRACC_COUNT;
+--TRACC_COUNT : PROCESS
+--BEGIN
+--WAIT UNTIL lock_for_tracc;
+--tracc_lock <= TRUE;
+--WAIT FOR tracc;
+--tracc_lock <= FALSE;
+--END PROCESS TRACC_COUNT;
 
 
 delay <= delay1; vwrite <= vwrite1;
 END ARCHITECTURE synth;
+
+

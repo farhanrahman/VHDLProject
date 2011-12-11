@@ -65,7 +65,7 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL empty_enable		: std_logic := '0';
 	
 	SIGNAL done : std_logic;
-	SIGNAL flush_last : std_logic := '0';
+	--SIGNAL flush_last : std_logic := '0';
 	
 BEGIN
 
@@ -156,16 +156,16 @@ BEGIN
 	delaycmd  <= delaycmd1;
 END PROCESS ASSIGN_OUT;
 
-ASSIGN_FLUSH_FOR_LAST : PROCESS
-BEGIN
-WAIT UNTIL falling_edge(startcmd);
-flush_last <= '1';
-WAIT UNTIL rising_edge(done);
-flush_last <= '0';
-END PROCESS ASSIGN_FLUSH_FOR_LAST;
+--ASSIGN_FLUSH_FOR_LAST : PROCESS
+--BEGIN
+--WAIT UNTIL falling_edge(startcmd);
+--flush_last <= '1';
+--WAIT UNTIL rising_edge(done);
+--flush_last <= '0';
+--END PROCESS ASSIGN_FLUSH_FOR_LAST;
 
 
-RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, flush_last, startcmd, flush, clean)
+RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, startcmd, flush, clean)
 BEGIN
 IF reset = '1' THEN
 	nstate <= idle;
@@ -173,7 +173,7 @@ ELSE
 	nstate <= state;
 	CASE state IS
 		WHEN idle =>
-			IF readyrcb = '0' OR flush_last = '1' OR (startcmd = '1' AND flush = '1' AND clean = '0') THEN
+			IF readyrcb = '0' OR (startcmd = '1' AND flush = '1' AND clean = '0') THEN
 				nstate <= f1;
 			END IF;
 		WHEN f1 =>
