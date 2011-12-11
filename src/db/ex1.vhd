@@ -8,7 +8,7 @@ ENTITY draw_octant IS
 		vsize : INTEGER := 6
   );
   PORT(
-    clk, resetx, delay, draw, xbias : IN  std_logic;
+    clk, resetx, resetg, delay, draw, xbias		: IN  std_logic;
     xin, yin                 					: IN  std_logic_vector(vsize - 1 DOWNTO 0);
     done                     					: OUT std_logic;
     x, y                     					: OUT std_logic_vector(vsize - 1 DOWNTO 0)
@@ -55,8 +55,8 @@ BEGIN
   R1 : PROCESS
   
   BEGIN
-		WAIT UNTIL clk'EVENT AND clk = '1' AND delay = '0';
-		IF (resetx = '1') THEN -- RESET
+		WAIT UNTIL clk'EVENT AND clk = '1';
+		IF ((resetx = '1') and (delay = '0')) THEN -- RESET
 			error <= (OTHERS => '0'); 
 			x1 <= xin;
 			y1 <= yin;
@@ -65,13 +65,13 @@ BEGIN
 			xnew <= xin;
 			ynew <= yin;
 		
-		ELSIF ((resetx = '0') and (draw = '1')) THEN -- DRAW
+		ELSIF ((resetx = '0') and (draw = '1') and (delay = '0')) THEN -- DRAW
 			xincr <= slv(sg(xin) - sg(x1));
 			yincr <= slv(sg(yin) - sg(y1));
 			xnew <= xin;
 			ynew <= yin;
-		
-		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '0')) THEN 
+			
+		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '0') and (delay = '0')) THEN 
 			x1 <= slv(sg(x1) + 1);
 			
 			IF ((sg(err1) > sg(err2)) or ((err1 = err2) and (xbias = '0'))) THEN
@@ -82,11 +82,18 @@ BEGIN
 			END IF;
 		
 		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '1')) THEN
-			NULL; -- do nothing
-		
+			NULL; -- do nothing		
 		END IF;
 		
-
+		IF resetg = '1' THEN
+			error <= (OTHERS => '0'); 
+			x1 <= (OTHERS => '0');
+			y1 <= (OTHERS => '0');
+			xincr <= (OTHERS => '0');
+			yincr <= (OTHERS => '0');
+			xnew <= (OTHERS => '0');
+			ynew <= (OTHERS => '0');
+		END IF;
 		
   END PROCESS R1;
 	

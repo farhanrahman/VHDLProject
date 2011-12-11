@@ -49,6 +49,7 @@ BEGIN
     PORT MAP (
       clk    => clk,
       resetx => resetx,
+	  resetg => resetg,
       delay  => delay,
 	  draw   => draw,
       done   => done,
