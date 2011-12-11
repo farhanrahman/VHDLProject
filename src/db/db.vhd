@@ -225,24 +225,23 @@ WAIT UNTIL clk'EVENT AND clk = '1';
 	-- Update registers
 	IF delaycmd = '0' THEN
 		state <= nstate;
+		penx <= penx1;
+		peny <= peny1;
+		startcmd <= startcmd1;
+		startcmdreg <= startcmd1;
+		rcbcmd <= rcbcmd1;
+		rcbcmdreg <= rcbcmd1;
+		dxin <= dxin1;
+		dyin <= dyin1;
+		draw <= draw1;
+		draw_reset <= draw_reset1;
+		xreg <= x1;
+		yreg <= y1;
+		x <= x1;
+		y <= y1;
+		xin1 <= xin;
+		yin1 <= yin;
 	END IF;
-	penx <= penx1;
-	peny <= peny1;
-	startcmd <= startcmd1;
-	startcmdreg <= startcmd1;
-	rcbcmd <= rcbcmd1;
-	rcbcmdreg <= rcbcmd1;
-	dxin <= dxin1;
-	dyin <= dyin1;
-	draw <= draw1;
-	draw_reset <= draw_reset1;
-	xreg <= x1;
-	yreg <= y1;
-	x <= x1;
-	y <= y1;
-	xin1 <= xin;
-	yin1 <= yin;
-	
 	-- Sychronous Reset
 	IF reset = '1' THEN
 		state <= listen;
