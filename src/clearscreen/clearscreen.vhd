@@ -39,8 +39,6 @@ SIGNAL delaycmd1, startcmd_out1 : std_logic;
 SIGNAL x_out1, y_out1 			: std_logic_vector(x_size - 1 DOWNTO 0);
 SIGNAL rcbcmd_out1				: std_logic_vector(2 DOWNTO 0);
 
---FLUSH, CLEAR AND DRAW--
-SIGNAL flush, clear, draw 		: std_logic;
 
 
 --ALIAS--
@@ -54,29 +52,6 @@ delaycmd <= delaycmd1; startcmd_out <= startcmd_out1;
 x_out <= x_out1; y_out <= y_out1;
 rcbcmd_out <= rcbcmd_out1;
 
-FLUSH_PARSE : PROCESS (rcbcmd, startcmd)
-BEGIN
-	IF startcmd = '1' THEN
-		flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
-	ELSE 
-		flush <= '0';
-	END IF;
-END PROCESS FLUSH_PARSE;
-
-PARSE_CMD : PROCESS(rcbcmd, flush, startcmd)
-BEGIN
-	IF startcmd = '1' THEN
-		IF rcbcmd(2) = '1' AND rcbcmd(1) /= '0' AND rcbcmd(0) /= '0' THEN--rcbcmd(2);
-			clear <= '1';
-		ELSE 
-			clear <= '0';
-		END IF;
-		draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
-	ELSE
-		clear <= '0';
-		draw <= '0';
-	END IF;
-END PROCESS PARSE_CMD;
 
 
 FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY)
@@ -91,6 +66,22 @@ FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX,
 BEGIN
 IF reset = '1' THEN 
 	nstate <= idle;
+	delaycmd1 		<= delaycmd_in;
+	startcmd_out1 	<= startcmd;
+	rcbcmd_out1 	<= rcbcmd;
+	y_out1 			<= y;
+	x_out1 			<= x;
+	--PASS THROUGH END--
+	--ASSIGNING VARIABLES--
+	x1 := oldX;
+	y1 := oldY;
+	x2 := currentX;
+	y2 := currentY;
+	thisX := (OTHERS => '0');
+	thisY := (OTHERS => '0');
+	pixnum := (OTHERS => '0');
+	pixword := (OTHERS => '0');
+	rcbcmd_var := rcbcmd;	
 ELSE 
 	nstate <= state;
 	delaycmd1 		<= delaycmd_in;
@@ -107,12 +98,11 @@ ELSE
 	thisX := (OTHERS => '0');
 	thisY := (OTHERS => '0');
 	pixnum := (OTHERS => '0');
-	pixword := (OTHERS => '0');	
+	pixword := (OTHERS => '0');
+	rcbcmd_var := rcbcmd;	
 	CASE state IS
 		WHEN idle =>
 			--PASS THROUGH BEGIN--
-
-			rcbcmd_var := rcbcmd;
 			 IF (rcbcmd(2) = '1') THEN -- AND rcbcmd(1) /= '0' AND rcbcmd(0) /= '0') THEN
 				nstate <= check;
 			 END IF;
