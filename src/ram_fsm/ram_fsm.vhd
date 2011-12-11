@@ -11,7 +11,8 @@ GENERIC(
 PORT(
 	clk, reset, start	: IN  	std_logic;
 	empty_enable		: IN 	std_logic;
-	vwrite, delay		: OUT 	std_logic; 
+	vwrite, delay		: OUT 	std_logic;
+	done				: OUT 	std_logic;
 	store				: IN 	store_t;
 	address				: IN 	std_logic_vector(a_size - 1 DOWNTO 0);	
 	vdout				: IN 	std_logic_vector(w_size - 1 DOWNTO 0);
@@ -29,7 +30,8 @@ SIGNAL twp_lock			: BOOLEAN := FALSE;
 SIGNAL lock_for_tracc	: BOOLEAN := FALSE;
 SIGNAL tracc_lock		: BOOLEAN := FALSE;
 SIGNAL store_reg		: store_t;
-
+SIGNAL address_temp 	: std_logic_vector(a_size - 1 DOWNTO 0);
+SIGNAL done1			: std_logic;
    CONSTANT twp   : TIME := config_clock_period*config_twp;
    CONSTANT twds  : TIME := twp / 2;
    CONSTANT tracc : TIME := config_clock_period *config_tracc;
@@ -38,7 +40,7 @@ SIGNAL store_reg		: store_t;
 BEGIN
 C: PROCESS(state, reset, start, twp_lock)
 BEGIN
-delay1 <= '0'; vwrite1 <= '0';
+delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 	IF reset = '1' THEN
 		nstate <= mx;
 	ELSE
@@ -47,47 +49,47 @@ delay1 <= '0'; vwrite1 <= '0';
 	END IF;
 	CASE state IS
 		WHEN mx =>
-			IF timing_on THEN
-				IF start = '1' THEN
-					IF NOT twp_lock THEN
-						nstate <= m1;
-					ELSE
-						nstate <= mx;
-						vwrite1 <= '1';
-						delay1 <= start;
-					END IF;
-				ELSE
-					IF twp_lock THEN
-						vwrite1 <= '1';
-						delay1 <= start;
-					END IF;
-					nstate <= mx;
-				END IF;
-			ELSE
+--			IF timing_on THEN
+--				IF start = '1' THEN
+--					IF NOT twp_lock THEN
+--						nstate <= m1;
+--					ELSE
+--						nstate <= mx;
+--						vwrite1 <= '1';
+--						delay1 <= start;
+--					END IF;
+--				ELSE
+--					IF twp_lock THEN
+--						vwrite1 <= '1';
+--						delay1 <= start;
+--					END IF;
+--					nstate <= mx;
+--				END IF;
+--			ELSE
 				IF start = '1' THEN
 					nstate <= m1;
 				ELSE 	
 					nstate <= mx;
 				END IF;		
-			END IF;
+--			END IF;
 		WHEN m1 =>
-			IF timing_on THEN
-				IF start = '1' OR start='0' THEN
-					IF NOT twp_lock THEN
-						nstate <= m2;
-						delay1 <= start;    
-					ELSE
-						nstate <= m1;
-						vwrite1 <= '1';
-						delay1 <= start;
-					END IF;
-				END IF;
-			ELSE
+--			IF timing_on THEN
+--				IF start = '1' OR start='0' THEN
+--					IF NOT twp_lock THEN
+--						nstate <= m2;
+--						delay1 <= start;    
+--					ELSE
+--						nstate <= m1;
+--						vwrite1 <= '1';
+--						delay1 <= start;
+--					END IF;
+--				END IF;
+--			ELSE
 				IF start = '1' OR start='0' THEN
 					nstate <= m2;
 					delay1 <= start;         
 				END IF;			
-			END IF;
+--			END IF;
 		WHEN m2 =>
 			IF start='1' OR start='0' THEN
 				nstate <= m3;
@@ -98,14 +100,17 @@ delay1 <= '0'; vwrite1 <= '0';
 				nstate <= m1;
 				vwrite1 <= '1';
 				lock_for_twp <= TRUE;
+				done1 <= '1';
 			ELSE
 				nstate <= mx;
 				vwrite1 <= '1';
 				lock_for_twp <= TRUE;
+				done1 <= '1';
 			END IF;           
 	END CASE;
 	END IF;
 END PROCESS C;
+done <= done1;
 
 FSM: PROCESS
 BEGIN
@@ -119,18 +124,29 @@ BEGIN
 WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN
     vaddr <= (OTHERS=>'0');
-  ELSIF (state = m1 OR state = mx) THEN--state = m1 THEN
-    vaddr <= address;
+  ELSIF state = m1 THEN--OR state = mx THEN--state = m1 THEN
+    vaddr <= address_temp;
+	--store_reg <= store;
   END IF;
 END PROCESS address_delay;
 
 store_register : PROCESS
 BEGIN
 WAIT UNTIL rising_edge(empty_enable);
---IF start = '1' THEN--AND (state = m1 OR state = mx) THEN
+--IF (state = m1 OR state = mx) THEN
 	store_reg <= store;
+	address_temp <= address;
 --END IF;
 END PROCESS store_register;
+
+--store_register : PROCESS
+--BEGIN
+--WAIT UNTIL rising_edge(empty_enable);
+--IF start = '1' THEN--AND (state = m1 OR state = mx) THEN
+--	store_reg <= store;
+--	address_temp <= address;
+--END IF;
+--END PROCESS store_register;
 
 vdin_compute : PROCESS
   --VARIABLE res  : pixop_t;

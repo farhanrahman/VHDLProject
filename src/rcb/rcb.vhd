@@ -45,7 +45,7 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL waitx   : std_logic;
 	SIGNAL vwrite1 : std_logic;
 	
-	TYPE states IS (s1,s2,s0);
+	TYPE states IS (idle,f1,f2,f3);
 	SIGNAL state     : states;
 	SIGNAL nstate    : states;
 	SIGNAL flush_cmd : std_logic;
@@ -65,6 +65,11 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL clk_invert		: std_logic;
 	
 	SIGNAL empty_enable		: std_logic := '0';
+	
+	SIGNAL done : std_logic;
+	SIGNAL flush_last : std_logic := '0';
+	--SIGNAL start_dummy : std_logic;
+	--SIGNAL empty_enable_dummy : std_logic;
 	
 BEGIN
 
@@ -102,7 +107,8 @@ rfsm : ENTITY ram_fsm
 	 vwrite	 		=> vwrite1,
 	 vdout	  		=> vdout,
 	 vdin    		=> vdin, 				         
-	 vaddr   		=> vaddr  
+	 vaddr   		=> vaddr,
+	 done 			=> done
   );
 
   clk_invert <= NOT clk;
@@ -154,31 +160,103 @@ BEGIN
 	delaycmd  <= delaycmd1;
 END PROCESS ASSIGN_OUT;
 
-
-ASSIGN_DELAYCMD : PROCESS (readyrcb, waitx)
+ASSIGN_FLUSH_FOR_LAST : PROCESS
 BEGIN
-	delaycmd1 <= (NOT readyrcb AND waitx);
-END PROCESS ASSIGN_DELAYCMD;
+WAIT UNTIL falling_edge(startcmd);
+flush_last <= '1';
+WAIT UNTIL rising_edge(done);
+flush_last <= '0';
+END PROCESS ASSIGN_FLUSH_FOR_LAST;
+--ASSIGN_DELAYCMD : PROCESS (readyrcb, waitx)
+--BEGIN
+--	delaycmd1 <= (NOT readyrcb AND waitx);
+--END PROCESS ASSIGN_DELAYCMD;
 
+
+RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, flush_last, startcmd, flush, clean)
+BEGIN
+IF reset = '1' THEN
+	nstate <= idle;
+ELSE
+	nstate <= state;
+	CASE state IS
+		WHEN idle =>
+			IF readyrcb = '0' OR flush_last = '1' OR (startcmd = '1' AND flush = '1' AND clean = '0') THEN
+				nstate <= f1;
+			END IF;
+		WHEN f1 =>
+			nstate <= f3;
+			IF waitx = '1' THEN
+				nstate <= f2;
+			END IF;
+		WHEN f2 =>
+			IF waitx = '0' THEN
+				nstate <= f3;
+			END IF;
+--			IF readyrcb = '0' AND waitx = '0' THEN
+--				nstate <= f1;
+--			END IF;
+--			IF readyrcb = '1' AND waitx = '0' THEN
+--				nstate <= idle;
+--			END IF;
+		WHEN f3 =>
+			IF done = '1' THEN
+				nstate <= idle;
+			END IF;
+	END CASE;
+END IF;
+
+END PROCESS RCB_FSM;
+
+ASSIGN_STATE : PROCESS
+BEGIN
+WAIT UNTIL rising_edge(clk_invert);
+state <= nstate;
+IF nstate = idle THEN
+	empty_enable <= '0';
+	start <= '0';
+	delaycmd1 <= '0';
+ELSIF nstate = f1 THEN
+	empty_enable <= '1';
+	start <= '1';
+	delaycmd1 <= '1';
+ELSIF nstate = f2 THEN
+	empty_enable <= '0';
+	start <= waitx;
+	delaycmd1 <= '1';
+ELSIF nstate = f3 THEN
+	empty_enable <= '0';
+	start <= '0';
+	delaycmd1 <= '1';
+END IF;
+END PROCESS ASSIGN_STATE;
+
+------REMOVE EVERYTHING FROM BELOW-------------
 --PIXWORD_FLUSH : PROCESS
 --BEGIN
 --WAIT UNTIL rising_edge(clk);
 --	empty <= start;--(NOT readyrcb OR waitx) OR (flush OR waitx);--(NOT readyrcb AND NOT waitx) OR (flush AND NOT waitx);
 --END PROCESS PIXWORD_FLUSH;
 
-EMP_ENABLE : PROCESS
-BEGIN
-	WAIT UNTIL rising_edge(start);
-		empty_enable <= '1';
-	WAIT UNTIL falling_edge(clk);
-		empty_enable <= '0';
-END PROCESS EMP_ENABLE;
+--EMP_ENABLE : PROCESS
+--BEGIN
+--	WAIT UNTIL rising_edge(start);
+--		empty_enable <= '1';
+--	WAIT UNTIL falling_edge(clk);
+--		empty_enable <= '0';
+	
+	--WAIT UNTIL falling_edge(readyrcb);
+	--WAIT UNTIL falling_edge(clk);
+	--	empty_enable <= '1';
+	--WAIT UNTIL falling_edge(clk);
+	--	empty_enable <= '0';
+--END PROCESS EMP_ENABLE;
 
-RAM_FSM_START : PROCESS
-BEGIN
-WAIT UNTIL rising_edge(clk_invert);
-	start <= (NOT readyrcb OR waitx) OR (flush OR waitx);--empty;--(NOT readyrcb OR waitx) OR (flush OR waitx);--NOT readyrcb OR waitx OR flush;
-END PROCESS RAM_FSM_START;
+--RAM_FSM_START : PROCESS
+--BEGIN
+--WAIT UNTIL rising_edge(clk_invert);
+--	start <= (NOT readyrcb OR waitx) OR (flush OR waitx);--empty;--(NOT readyrcb OR waitx) OR (flush OR waitx);--NOT readyrcb OR waitx OR flush;
+--END PROCESS RAM_FSM_START;
 
 
 END ARCHITECTURE behav;
