@@ -95,14 +95,15 @@ BEGIN
 END PROCESS SIGS;
 
 -- Configure draw octant - Combinational
-OCT: PROCESS(xin, yin, penx, peny)
+OCT: PROCESS(xin, yin, penx, peny, negx, negy)
 BEGIN
 	-- Defaults
-	xbias <= '1';
 	swapxy <= '0';
 	negx <= '0';
 	negy <= '0';
 	
+	xbias <= negx XNOR negy;
+
 	-- Shall we swap xy? reflects on x=y 
 	IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
 		swapxy <= '1';

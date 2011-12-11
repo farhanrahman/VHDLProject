@@ -98,31 +98,30 @@ BEGIN
 	C2 : PROCESS(x1, y1, negx1, negy1, swapxy1, xtemp, ytemp) -- combinational process for cycle x+1
 	
 	BEGIN	
-		
-		-- defaults
-		xtemp <= x1;
-		ytemp <= y1;
-		
-		-- negx
-		IF (negx1 = '1') THEN
-			xtemp <= NOT x1;
-		END IF;
-		
-		-- negy
-		IF (negy1 = '1') THEN
-			ytemp <= NOT y1;
-		END IF;
-		
-		-- swapxy & final xyin
+			
+		-- swapxy first
 		IF (swapxy1 = '1') THEN
-			x <= ytemp;
-			y <= xtemp;
+			xtemp <= y1;
+			ytemp <= x1;
 		ELSE
-			x <= xtemp;
-			y <= ytemp;
+			xtemp <= x1;
+			ytemp <= y1;
 		END IF;	
 			
-	
+		-- negx and output
+		IF (negx1 = '1') THEN
+			x <= NOT xtemp;
+		ELSE
+			x <= xtemp;
+		END IF;
+		
+		-- negy and output
+		IF (negy1 = '1') THEN
+			y <= NOT ytemp;
+		ELSE
+			y <= ytemp;
+		END IF;
+		
 	END PROCESS C2;
 	
 	
