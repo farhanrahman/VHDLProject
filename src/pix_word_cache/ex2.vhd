@@ -91,7 +91,7 @@ BEGIN
         WHEN white =>
           store1(to_integer(unsigned(pixnum))) <= black;
         WHEN invert =>
-          store1(to_integer(unsigned(pixnum))) <= same;
+          store1(to_integer(unsigned(pixnum))) <= invert;
         WHEN same =>
           store1(to_integer(unsigned(pixnum))) <= invert;
         WHEN OTHERS => NULL;
