@@ -93,26 +93,27 @@ IF reset = '1' THEN
 	nstate <= idle;
 ELSE 
 	nstate <= state;
+	delaycmd1 		<= delaycmd_in;
+	startcmd_out1 	<= startcmd;
+	rcbcmd_out1 	<= rcbcmd;
+	y_out1 			<= y;
+	x_out1 			<= x;
+	--PASS THROUGH END--
+	--ASSIGNING VARIABLES--
+	x1 := oldX;
+	y1 := oldY;
+	x2 := currentX;
+	y2 := currentY;
+	thisX := (OTHERS => '0');
+	thisY := (OTHERS => '0');
+	pixnum := (OTHERS => '0');
+	pixword := (OTHERS => '0');	
 	CASE state IS
 		WHEN idle =>
 			--PASS THROUGH BEGIN--
-			delaycmd1 		<= delaycmd_in;
-			startcmd_out1 	<= startcmd;
-			rcbcmd_out1 	<= rcbcmd;
-			y_out1 			<= y;
-			x_out1 			<= x;
-			--PASS THROUGH END--
-			--ASSIGNING VARIABLES--
-			x1 := oldX;
-			y1 := oldY;
-			x2 := currentX;
-			y2 := currentY;
-			thisX := (OTHERS => '0');
-			thisY := (OTHERS => '0');
-			pixnum := (OTHERS => '0');
-			pixword := (OTHERS => '0');
+
 			rcbcmd_var := rcbcmd;
-			 IF (rcbcmd(2) = '1' AND rcbcmd(1) /= '0' AND rcbcmd(0) /= '0') THEN
+			 IF (rcbcmd(2) = '1') THEN -- AND rcbcmd(1) /= '0' AND rcbcmd(0) /= '0') THEN
 				nstate <= check;
 			 END IF;
 		WHEN check =>

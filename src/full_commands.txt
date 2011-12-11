@@ -34,7 +34,7 @@ MW 52 52
 DB 32 32
 -- draw a black square
 MW 0 0
---CB 10 10
+CB 10 10
 -- draw to invert colour lines in the square
 DI 0 0
 MW 0 10
