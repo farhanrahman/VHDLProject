@@ -108,7 +108,6 @@ BEGIN
 	xbias <= negx XNOR negy;
 
 	-- Shall we swap xy? reflects on x=y 
-	--IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
 	IF (abs(sg(resize(usg(xin),vsize+1)) - sg(resize(usg(penx),vsize+1))) < abs(sg(resize(usg(yin),vsize+1)) - sg(resize(usg(peny),vsize+1)))) THEN
 		swapxy <= '1';
 	ELSE	
