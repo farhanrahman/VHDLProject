@@ -1,7 +1,7 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 USE work.pix_cache_pak.ALL;
-USE work.config_pack.ALL;
+--USE work.config_pack.ALL;
 USE IEEE.numeric_std.ALL;
 ENTITY ram_fsm IS
 GENERIC(
