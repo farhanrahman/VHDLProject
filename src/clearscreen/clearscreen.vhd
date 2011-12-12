@@ -49,22 +49,12 @@ SIGNAL rcbcmd_out1				: std_logic_vector(2 DOWNTO 0);
 	
 	SIGNAL pixnum			: std_logic_vector(p_size - 1 DOWNTO 0);
 	SIGNAL pixword			: std_logic_vector(a_size - 1 DOWNTO 0);	
-	
-	--SIGNAL pixnum_reg			: std_logic_vector(p_size - 1 DOWNTO 0);
-	--SIGNAL pixword_reg			: std_logic_vector(a_size - 1 DOWNTO 0);	
 BEGIN
 
 delaycmd <= delaycmd1; startcmd_out <= startcmd_out1;
 x_out <= x_out1; y_out <= y_out1;
 rcbcmd_out <= rcbcmd_out1;
 
-
---STORE_REG : PROCESS
---BEGIN
---WAIT UNTIL falling_edge(clk);
---	pixnum_reg 	<= pixnum;
---	pixword_reg <= pixword;
---END PROCESS STORE_REG;
 
 
 FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY, pixword, pixnum)--, pixnum_reg, pixword_reg)
@@ -85,16 +75,11 @@ ELSE
 	delaycmd1 		<= delaycmd_in;
 	startcmd_out1 	<= startcmd;
 	rcbcmd_out1 	<= rcbcmd;
-	x_out1 			<= x;--pixword_reg(3 DOWNTO 0) & pixnum_reg(1 DOWNTO 0);
-	y_out1 			<= y;--pixword_reg(7 DOWNTO 4) & pixnum_reg(3 DOWNTO 2);
-	--pixword <= pixword_reg;
-	--pixnum <= pixnum_reg;
+	x_out1 			<= x;
+	y_out1 			<= y;
+
 	CASE state IS
 		WHEN idle =>
-			--pixnum 	<= (OTHERS => '0');
-			--pixword <= (OTHERS => '0');
-			--x_out1 <= x;
-			--y_out <= y;
 			 IF rcbcmd(2) = '1' THEN
 				nstate <= check;
 			 END IF;
@@ -109,24 +94,12 @@ ELSE
 			IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
 				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
 				nstate <= draw_state;
-				--pixnum 	<= pixnum_reg;
-				--pixword <= pixword_reg;
 			ELSE
 				IF (pixnum = pixnum_end) AND (pixword = pixword_end) THEN
 					nstate <= idle;
-				--ELSE
-				--	IF pixnum_reg = pixnum_end THEN
-				--		pixnum 	<= (OTHERS => '0');
-				--		pixword <= slv(usg(pixword_reg) + 1);
-				--	ELSE
-				--		pixnum <= slv(usg(pixnum_reg) + 1);
-				--		pixword <= pixword_reg;
-				--	END IF;
 				END IF;
 			END IF;
-		WHEN draw_state =>
-			--pixnum 	<= pixnum_reg;
-			--pixword <= pixword_reg;		
+		WHEN draw_state =>	
 			delaycmd1 <= '1';
 			startcmd_out1 <= '1';
 			rcbcmd_out1 <= rcbcmd;
@@ -155,16 +128,15 @@ IF state = idle AND nstate = check THEN
 	oldX 		<= currentX;
 	oldY 		<= currentY;
 END IF;
-IF state = draw_state AND nstate = check THEN
+IF state = draw_state AND nstate = check AND delaycmd_in = '0' THEN
 	IF pixnum = pixnum_end THEN
 		pixnum 	<= (OTHERS => '0');
 		pixword <= slv(usg(pixword) + 1);
 	ELSE
 		pixnum <= slv(usg(pixnum) + 1);
-		--pixword <= pixword_reg;
 	END IF;
 END IF;
-IF nstate = check THEN
+IF state = check THEN
 IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
 				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
 	ELSE
@@ -173,7 +145,6 @@ IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg
 			pixword <= slv(usg(pixword) + 1);
 		ELSE
 			pixnum <= slv(usg(pixnum) + 1);
-			--pixword <= pixword_reg;
 		END IF;
 	END IF;
 END IF;
