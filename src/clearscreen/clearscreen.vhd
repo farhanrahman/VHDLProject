@@ -40,12 +40,18 @@ SIGNAL x_out1, y_out1 			: std_logic_vector(x_size - 1 DOWNTO 0);
 SIGNAL rcbcmd_out1				: std_logic_vector(2 DOWNTO 0);
 
 
-
 --ALIAS--
 	ALIAS slv  IS std_logic_vector;
 	ALIAS usg  IS unsigned;
 	ALIAS sg   IS signed;
-
+	CONSTANT pixnum_end		: std_logic_vector(p_size - 1 DOWNTO 0) := (OTHERS => '1');
+	CONSTANT pixword_end	: std_logic_vector(a_size - 1 DOWNTO 0) := (OTHERS => '1');
+	
+	SIGNAL pixnum			: std_logic_vector(p_size - 1 DOWNTO 0);
+	SIGNAL pixword			: std_logic_vector(a_size - 1 DOWNTO 0);	
+	
+	--SIGNAL pixnum_reg			: std_logic_vector(p_size - 1 DOWNTO 0);
+	--SIGNAL pixword_reg			: std_logic_vector(a_size - 1 DOWNTO 0);	
 BEGIN
 
 delaycmd <= delaycmd1; startcmd_out <= startcmd_out1;
@@ -53,86 +59,79 @@ x_out <= x_out1; y_out <= y_out1;
 rcbcmd_out <= rcbcmd_out1;
 
 
+--STORE_REG : PROCESS
+--BEGIN
+--WAIT UNTIL falling_edge(clk);
+--	pixnum_reg 	<= pixnum;
+--	pixword_reg <= pixword;
+--END PROCESS STORE_REG;
 
-FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY)
-	VARIABLE x1,x2 			: std_logic_vector(x_size - 1 DOWNTO 0);
-	VARIABLE y1,y2 			: std_logic_vector(x_size - 1 DOWNTO 0);
-	VARIABLE thisX, thisY 	: std_logic_vector(x_size - 1 DOWNTO 0);
-	VARIABLE pixnum			: std_logic_vector(p_size - 1 DOWNTO 0);
-	VARIABLE pixword		: std_logic_vector(a_size - 1 DOWNTO 0);
-	VARIABLE rcbcmd_var		: std_logic_vector(2 DOWNTO 0);
-	CONSTANT pixnum_end		: std_logic_vector(p_size - 1 DOWNTO 0) := (OTHERS => '1');
-	CONSTANT pixword_end	: std_logic_vector(a_size - 1 DOWNTO 0) := (OTHERS => '1');
+
+FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY, pixword, pixnum)--, pixnum_reg, pixword_reg)
+
+
 BEGIN
 IF reset = '1' THEN 
-	nstate <= idle;
+	nstate 			<= idle;
 	delaycmd1 		<= delaycmd_in;
 	startcmd_out1 	<= startcmd;
 	rcbcmd_out1 	<= rcbcmd;
 	y_out1 			<= y;
 	x_out1 			<= x;
-	--PASS THROUGH END--
-	--ASSIGNING VARIABLES--
-	x1 := oldX;
-	y1 := oldY;
-	x2 := currentX;
-	y2 := currentY;
-	thisX := (OTHERS => '0');
-	thisY := (OTHERS => '0');
-	pixnum := (OTHERS => '0');
-	pixword := (OTHERS => '0');
-	rcbcmd_var := rcbcmd;	
+--	pixnum 			<= (OTHERS => '0');
+--	pixword			<= (OTHERS => '0');
 ELSE 
-	nstate <= state;
+	nstate 			<= state;
 	delaycmd1 		<= delaycmd_in;
 	startcmd_out1 	<= startcmd;
 	rcbcmd_out1 	<= rcbcmd;
-	y_out1 			<= y;
-	x_out1 			<= x;
-	--PASS THROUGH END--
-	--ASSIGNING VARIABLES--
-	x1 := oldX;
-	y1 := oldY;
-	x2 := currentX;
-	y2 := currentY;
-	thisX := (OTHERS => '0');
-	thisY := (OTHERS => '0');
-	pixnum := (OTHERS => '0');
-	pixword := (OTHERS => '0');
-	rcbcmd_var := rcbcmd;	
+	x_out1 			<= x;--pixword_reg(3 DOWNTO 0) & pixnum_reg(1 DOWNTO 0);
+	y_out1 			<= y;--pixword_reg(7 DOWNTO 4) & pixnum_reg(3 DOWNTO 2);
+	--pixword <= pixword_reg;
+	--pixnum <= pixnum_reg;
 	CASE state IS
 		WHEN idle =>
-			--PASS THROUGH BEGIN--
-			 IF (rcbcmd(2) = '1') THEN -- AND rcbcmd(1) /= '0' AND rcbcmd(0) /= '0') THEN
+			--pixnum 	<= (OTHERS => '0');
+			--pixword <= (OTHERS => '0');
+			--x_out1 <= x;
+			--y_out <= y;
+			 IF rcbcmd(2) = '1' THEN
 				nstate <= check;
 			 END IF;
 		WHEN check =>
 			delaycmd1 <= '1';
 			startcmd_out1 <= '0';
-			thisX := pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0);
-			thisY := pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2);
-			IF ((abs(sg(usg(thisX) - usg(x1))) + abs(sg(usg(x2) - usg(thisX)))) = abs(sg(usg(x2) - usg(x1))))
-				AND ((abs(sg(usg(thisY) - usg(y1))) + abs(sg(usg(y2) - usg(thisY)))) = abs(sg(usg(y2) - usg(y1)))) THEN
-				-- draw(thisX,thisY)
+			x_out1 	<= pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0);
+			y_out1 	<= pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2);			
+			IF oldX = currentX AND oldY = currentY THEN
+				nstate <= idle;
+			END IF;
+			IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
+				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
 				nstate <= draw_state;
+				--pixnum 	<= pixnum_reg;
+				--pixword <= pixword_reg;
 			ELSE
 				IF (pixnum = pixnum_end) AND (pixword = pixword_end) THEN
 					nstate <= idle;
-				ELSE
-					IF pixnum = pixnum_end THEN
-						pixnum 	:= (OTHERS => '0');
-						pixword := slv(usg(pixword) + 1);
-					ELSE
-						pixnum := slv(usg(pixnum) + 1);
-					END IF;
+				--ELSE
+				--	IF pixnum_reg = pixnum_end THEN
+				--		pixnum 	<= (OTHERS => '0');
+				--		pixword <= slv(usg(pixword_reg) + 1);
+				--	ELSE
+				--		pixnum <= slv(usg(pixnum_reg) + 1);
+				--		pixword <= pixword_reg;
+				--	END IF;
 				END IF;
 			END IF;
 		WHEN draw_state =>
+			--pixnum 	<= pixnum_reg;
+			--pixword <= pixword_reg;		
 			delaycmd1 <= '1';
 			startcmd_out1 <= '1';
-			rcbcmd_out1 <= rcbcmd_var;
-			x_out1 <= thisX;
-			y_out1 <= thisY;
+			rcbcmd_out1 <= rcbcmd;
+			x_out1 	<= pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0);
+			y_out1 	<= pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2);
 			IF delaycmd_in = '0' THEN
 				nstate <= check;
 			END IF;
@@ -145,11 +144,38 @@ ASSIGN_STATE : PROCESS
 BEGIN
 WAIT UNTIL rising_edge(clk);
 	state <= nstate;
-IF nstate = idle THEN
 	currentX 	<= x;
 	currentY 	<= y;
+
+IF nstate = idle THEN
+	pixnum 			<= (OTHERS => '0');
+	pixword			<= (OTHERS => '0');
+END IF;	
+IF state = idle AND nstate = check THEN
 	oldX 		<= currentX;
 	oldY 		<= currentY;
+END IF;
+IF state = draw_state AND nstate = check THEN
+	IF pixnum = pixnum_end THEN
+		pixnum 	<= (OTHERS => '0');
+		pixword <= slv(usg(pixword) + 1);
+	ELSE
+		pixnum <= slv(usg(pixnum) + 1);
+		--pixword <= pixword_reg;
+	END IF;
+END IF;
+IF nstate = check THEN
+IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
+				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
+	ELSE
+		IF pixnum = pixnum_end THEN
+			pixnum 	<= (OTHERS => '0');
+			pixword <= slv(usg(pixword) + 1);
+		ELSE
+			pixnum <= slv(usg(pixnum) + 1);
+			--pixword <= pixword_reg;
+		END IF;
+	END IF;
 END IF;
 END PROCESS ASSIGN_STATE;
 

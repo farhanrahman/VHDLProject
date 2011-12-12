@@ -163,7 +163,8 @@ BEGIN
 				WHEN "00" => -- Move pen
 					penx1 <= xin;
 					peny1 <= yin;
-
+					x1 <= xin;
+					y1 <= yin;
 				WHEN "01" => -- Draw
 					-- Send start postion to draw_octant
 					busy <= '1';
