@@ -68,8 +68,6 @@ IF reset = '1' THEN
 	rcbcmd_out1 	<= rcbcmd;
 	y_out1 			<= y;
 	x_out1 			<= x;
---	pixnum 			<= (OTHERS => '0');
---	pixword			<= (OTHERS => '0');
 ELSE 
 	nstate 			<= state;
 	delaycmd1 		<= delaycmd_in;

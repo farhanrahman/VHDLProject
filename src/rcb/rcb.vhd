@@ -18,7 +18,7 @@ ENTITY rcb IS
 		clk, reset	: IN  std_logic;
 		x,y 		: IN  std_logic_vector(x_size - 1 DOWNTO 0);
 		rcbcmd 		: IN  std_logic_vector(2 DOWNTO 0);
-		startcmd 	: IN  std_logic; -- need to connect this to fifo
+		startcmd 	: IN  std_logic;
 		delaycmd 	: OUT std_logic;
 		vaddr       : OUT std_logic_vector(a_size - 1 DOWNTO 0);
 		vdin        : OUT std_logic_vector(w_size - 1 DOWNTO 0);
@@ -65,7 +65,6 @@ ARCHITECTURE behav OF rcb IS
 	SIGNAL empty_enable		: std_logic := '0';
 	
 	SIGNAL done : std_logic;
-	--SIGNAL flush_last : std_logic := '0';
 	
 BEGIN
 
@@ -156,13 +155,6 @@ BEGIN
 	delaycmd  <= delaycmd1;
 END PROCESS ASSIGN_OUT;
 
---ASSIGN_FLUSH_FOR_LAST : PROCESS
---BEGIN
---WAIT UNTIL falling_edge(startcmd);
---flush_last <= '1';
---WAIT UNTIL rising_edge(done);
---flush_last <= '0';
---END PROCESS ASSIGN_FLUSH_FOR_LAST;
 
 
 RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, startcmd, flush, clean)
