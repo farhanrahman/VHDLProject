@@ -24,7 +24,9 @@ ARCHITECTURE comb OF draw_octant IS
   SIGNAL err1, err2               : std_logic_vector(vsize DOWNTO 0);
 
   ALIAS slv IS std_logic_vector;
+  ALIAS usg	IS unsigned;
   ALIAS sg	IS signed;
+
 
 BEGIN
 
@@ -36,10 +38,10 @@ BEGIN
     
   BEGIN
 		-- err1 = | error + yincr |
-		err1 <= slv(resize(abs(sg(error) + sg(yincr)), (vsize+1)));
+		err1 <= slv(abs(signed(resize(sg(error),(vsize+1)) + sg(resize(usg(yincr),(vsize+1))))));
 		
 		-- err2 = | error + yincr - xincr |
-		err2 <= slv(resize(abs(sg(error) + sg(yincr) - sg(xincr)), (vsize+1)));
+		err2 <= slv(abs(signed(resize(sg(error),(vsize+1)) + sg(resize(usg(yincr),(vsize+1))) - sg(resize(usg(xincr),(vsize+1))))));
 		
 		-- done =  x = xnew and y = ynew
 		IF ((x1 = xnew) and (y1 = ynew) and (resetx = '0') and (draw = '0')) THEN
@@ -66,19 +68,19 @@ BEGIN
 			ynew <= yin;
 		
 		ELSIF ((resetx = '0') and (draw = '1') and (delay = '0')) THEN -- DRAW
-			xincr <= slv(sg(xin) - sg(x1));
-			yincr <= slv(sg(yin) - sg(y1));
+			xincr <= slv(usg(xin) - usg(x1));
+			yincr <= slv(usg(yin) - usg(y1));
 			xnew <= xin;
 			ynew <= yin;
 			
 		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '0') and (delay = '0')) THEN 
-			x1 <= slv(sg(x1) + 1);
+			x1 <= slv(usg(x1) + 1);
 			
-			IF ((sg(err1) > sg(err2)) or ((err1 = err2) and (xbias = '0'))) THEN
-				y1 <= slv(sg(y1) + 1);
-				error <= slv(sg(error) + sg(yincr) - sg(xincr));
-			ELSIF ((sg(err1) < sg(err2)) or ((err1 = err2) and (xbias = '1'))) THEN
-				error <= slv(sg(error) + sg(yincr));
+			IF ((usg(err1) > usg(err2)) or ((err1 = err2) and (xbias = '0'))) THEN
+				y1 <= slv(usg(y1) + 1);
+				error <= slv(usg(error) + usg(yincr) - usg(xincr));
+			ELSIF ((usg(err1) < usg(err2)) or ((err1 = err2) and (xbias = '1'))) THEN
+				error <= slv(usg(error) + usg(yincr));
 			END IF;
 		
 		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '1')) THEN

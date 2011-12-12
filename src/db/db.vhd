@@ -48,6 +48,9 @@ SIGNAL draw_y								: std_logic_vector(vsize-1 DOWNTO 0);
 SIGNAL dxin, dxin1				   			: std_logic_vector(vsize-1 DOWNTO 0);
 SIGNAL dyin, dyin1   						: std_logic_vector(vsize-1 DOWNTO 0); 
 
+ALIAS usg	IS unsigned;
+ALIAS sg	IS signed;
+  
 BEGIN
 
 -- wrapper for draw_any_octant
@@ -105,7 +108,8 @@ BEGIN
 	xbias <= negx XNOR negy;
 
 	-- Shall we swap xy? reflects on x=y 
-	IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
+	--IF (abs(signed(xin) - signed(penx)) < abs(signed(yin) - signed(peny))) THEN
+	IF (abs(sg(resize(usg(xin),vsize+1)) - sg(resize(usg(penx),vsize+1))) < abs(sg(resize(usg(yin),vsize+1)) - sg(resize(usg(peny),vsize+1)))) THEN
 		swapxy <= '1';
 	ELSE	
 		swapxy <= '0';
