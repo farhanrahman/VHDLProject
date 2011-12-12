@@ -68,7 +68,7 @@ ARCHITECTURE behav OF rcb IS
 	
 BEGIN
 
-pwordcache : ENTITY pix_word_cache
+pwordcache : ENTITY pix_word_cache --Pixword cache entity
 	GENERIC MAP(
 		w_size => a_size,
 		p_size => p_size
@@ -87,7 +87,7 @@ pwordcache : ENTITY pix_word_cache
 		ready   => readyrcb
 	);
 	
-rfsm : ENTITY ram_fsm
+rfsm : ENTITY ram_fsm -- ram_fsm entity
 	GENERIC MAP(
 		timing_on => timing_on
 	)
@@ -108,7 +108,7 @@ rfsm : ENTITY ram_fsm
 
   clk_invert <= NOT clk;
 
-PARSE_RCBCMD : PROCESS (x,y,rcbcmd)
+PARSE_RCBCMD : PROCESS (x,y,rcbcmd) --Combinational process which converts x and y to pixword and pixnum for processing
 	VARIABLE pix_cmd       		: std_logic_vector(1 DOWNTO 0);
 BEGIN
 	pixword1(7 DOWNTO 4) <= y(5 DOWNTO 2);
@@ -127,9 +127,10 @@ BEGIN
 	  WHEN OTHERS => NULL;   
 	 END CASE;
 END PROCESS PARSE_RCBCMD;
+-- DATA FLOW--
 pixword <= pixword1; pixnum <=pixnum1; pixopin <= pixopin1;
 
-FLUSH_PARSE : PROCESS (rcbcmd, startcmd)
+FLUSH_PARSE : PROCESS (rcbcmd, startcmd) -- Process converts RCB Command for flush
 BEGIN
 	IF startcmd = '1' THEN
 		flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
@@ -138,7 +139,7 @@ BEGIN
 	END IF;
 END PROCESS FLUSH_PARSE;
 
-PARSE_CMD : PROCESS(rcbcmd, flush, startcmd)
+PARSE_CMD : PROCESS(rcbcmd, flush, startcmd) -- Process converts rcbcmd to clear and draw
 BEGIN
 	IF startcmd = '1' THEN
 		clear <= rcbcmd(2);
@@ -149,7 +150,7 @@ BEGIN
 	END IF;
 END PROCESS PARSE_CMD;
 
-ASSIGN_OUT : PROCESS (vwrite1, delaycmd1)
+ASSIGN_OUT : PROCESS (vwrite1, delaycmd1) --Process assigns vwrite and delaycmd output from dummy variables
 BEGIN
 	vwrite    <= vwrite1;
 	delaycmd  <= delaycmd1;
@@ -158,6 +159,8 @@ END PROCESS ASSIGN_OUT;
 
 
 RCB_FSM : PROCESS(reset, readyrcb, state, waitx, done, startcmd, flush, clean)
+-- The combinationl part of the state machine. This state machine takes care of 
+-- 1) startcmd 2) empty signal and 3) delaycmd
 BEGIN
 IF reset = '1' THEN
 	nstate <= idle;
@@ -187,6 +190,8 @@ END IF;
 END PROCESS RCB_FSM;
 
 ASSIGN_STATE : PROCESS
+-- This process assigns the nstate to state (current state). However this process also assigns output
+-- on rising_edge of clk (inverted clock, to save cycles) 
 BEGIN
 WAIT UNTIL rising_edge(clk_invert);
 state <= nstate;

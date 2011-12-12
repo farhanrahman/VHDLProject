@@ -79,6 +79,8 @@ ELSE
 	CASE state IS
 		WHEN idle =>
 			 IF rcbcmd(2) = '1' THEN
+				x_out1 <= (OTHERS => '0');
+				y_out1 <= (OTHERS => '0');
 				nstate <= check;
 			 END IF;
 		WHEN check =>
@@ -91,6 +93,7 @@ ELSE
 			END IF;
 			IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
 				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
+				-- check if pixel is within given rectangle
 				nstate <= draw_state;
 			ELSE
 				IF (pixnum = pixnum_end) AND (pixword = pixword_end) THEN

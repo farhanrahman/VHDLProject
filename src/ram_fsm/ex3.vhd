@@ -31,7 +31,7 @@ SIGNAL address_temp 	: std_logic_vector(a_size - 1 DOWNTO 0);
 SIGNAL done1			: std_logic;
 
 BEGIN
-C: PROCESS(state, reset, start)--, twp_lock)
+C: PROCESS(state, reset, start) --state machine combinational process
 BEGIN
 delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 	IF reset = '1' THEN
@@ -69,14 +69,14 @@ delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 END PROCESS C;
 done <= done1;
 
-FSM: PROCESS
+FSM: PROCESS --FSM process assigns next state to current state at rising_edge of clk
 BEGIN
   WAIT UNTIL rising_edge(clk);
   state <= nstate;
 END PROCESS FSM;
 
 
-address_delay: PROCESS
+address_delay: PROCESS --This process is a register that stores the incoming address when state is m1
 BEGIN
 WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN
@@ -86,7 +86,7 @@ WAIT UNTIL falling_edge(clk);
   END IF;
 END PROCESS address_delay;
 
-store_register : PROCESS
+store_register : PROCESS -- This process is a register that stores the values of address and store as soon as empty goes high
 BEGIN
 WAIT UNTIL rising_edge(empty_enable);
 	store_reg <= store;
@@ -94,7 +94,7 @@ WAIT UNTIL rising_edge(empty_enable);
 END PROCESS store_register;
 
 
-vdin_compute : PROCESS
+vdin_compute : PROCESS -- This process in half a cycle after m3 is reached, assigns the output to the VRAM with the values in store.
 BEGIN
 WAIT UNTIL falling_edge(clk);
   IF reset = '1' THEN 
@@ -113,7 +113,7 @@ WAIT UNTIL falling_edge(clk);
 END PROCESS vdin_compute;
 
 
-delay <= delay1; vwrite <= vwrite1;
+delay <= delay1; vwrite <= vwrite1; --Data flow statements
 END ARCHITECTURE synth;
 
 
