@@ -176,6 +176,8 @@ BEGIN
 				WHEN "10" => -- Clear
 					x1 <= xin;
 					y1 <= yin;
+					penx1 <= xin;
+					peny1 <= yin;
 					rcbcmd1 <= "1" & pen;
 					startcmd1 <= '1';	
 
