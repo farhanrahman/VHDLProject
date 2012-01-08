@@ -59,8 +59,23 @@ rcbcmd_out <= rcbcmd_out1;
 
 FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY, pixword, pixnum)--, pixnum_reg, pixword_reg)
 
+VARIABLE maxX : std_logic_vector(x_size - 1 DOWNTO 0);
+VARIABLE maxY : std_logic_vector(x_size - 1 DOWNTO 0);
 
 BEGIN
+
+IF usg(currentX) >  usg(oldX) THEN
+	maxX := currentX;
+ELSE
+	maxX := oldX;
+END IF;
+
+IF usg(currentY) > usg(oldY) THEN
+	maxY := currentY;
+ELSE
+	maxY := oldY;
+END IF;
+
 IF reset = '1' THEN 
 	nstate 			<= idle;
 	delaycmd1 		<= delaycmd_in;
@@ -89,8 +104,9 @@ ELSE
 			x_out1 	<= pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0);
 			y_out1 	<= pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2);			
 			IF oldX = currentX AND oldY = currentY THEN
-				nstate <= idle;
+				nstate <= idle; --need to fix this..have to clear single pixel.
 			END IF;
+			
 			IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
 				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
 				-- check if pixel is within given rectangle
@@ -99,6 +115,11 @@ ELSE
 				IF (pixnum = pixnum_end) AND (pixword = pixword_end) THEN
 					nstate <= idle;
 				END IF;
+				
+				IF (usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) >= usg(maxY)) AND (usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) >= usg(maxX)) THEN
+					nstate <= idle;
+				END IF;
+				
 			END IF;
 		WHEN draw_state =>	
 			delaycmd1 <= '1';
