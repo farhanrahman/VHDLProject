@@ -117,7 +117,7 @@ ELSE
 					nstate <= idle;
 				END IF;
 				
-				IF (usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) >= usg(maxY)) AND (usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) >= usg(maxX)) THEN
+				IF is_outside_max_points(pixnum, pixword, maxX, maxY) THEN
 					nstate <= idle;
 				END IF;
 				
@@ -160,13 +160,20 @@ IF state = draw_state AND nstate = check AND delaycmd_in = '0' THEN
 	END IF;
 END IF;
 IF state = check THEN
-IF NOT is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
+	IF NOT is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
 		IF pixnum = pixnum_end THEN
 			pixnum 	<= (OTHERS => '0');
 			pixword <= slv(usg(pixword) + 1);
 		ELSE
 			pixnum <= slv(usg(pixnum) + 1);
 		END IF;
+		
+		IF is_greaterthan_maxX(oldX, oldY, currentX, currentY, pixnum, pixword) AND pixnum = pixnum_end THEN
+			IF pixword /= pixword_end THEN
+				pixnum <= (OTHERS => '0');
+				pixword <= slv(usg(pixword) + 16 - usg(pixword(3 DOWNTO 0)));
+			END IF;
+		END IF;				
 	END IF;
 END IF;
 END PROCESS ASSIGN_STATE;
