@@ -27,6 +27,15 @@ PACKAGE cl_pack IS
 		maxX		: std_logic_vector(x_size - 1 DOWNTO 0);
 		maxY		: std_logic_vector(x_size - 1 DOWNTO 0)
 	) RETURN BOOLEAN;
+	
+	FUNCTION is_block_in_rect(
+		pixword 	: std_logic_vector(a_size - 1 DOWNTO 0);
+		currentX 	: std_logic_vector(x_size - 1 DOWNTO 0);
+		currentY 	: std_logic_vector(x_size - 1 DOWNTO 0);
+		oldX		: std_logic_vector(x_size - 1 DOWNTO 0);
+		oldY 		: std_logic_vector(x_size - 1 DOWNTO 0)			
+	) RETURN BOOLEAN;
+	
 	ALIAS usg IS unsigned;
 	ALIAS sg  IS signed;
 	ALIAS slv IS std_logic_vector;
@@ -111,4 +120,25 @@ PACKAGE BODY cl_pack IS
 			RETURN FALSE;
 		END IF;
 	END is_outside_max_points;
+	
+	FUNCTION is_block_in_rect(
+		pixword 	: std_logic_vector(a_size - 1 DOWNTO 0);
+		currentX 	: std_logic_vector(x_size - 1 DOWNTO 0);
+		currentY 	: std_logic_vector(x_size - 1 DOWNTO 0);
+		oldX		: std_logic_vector(x_size - 1 DOWNTO 0);
+		oldY 		: std_logic_vector(x_size - 1 DOWNTO 0)			
+	) RETURN BOOLEAN IS
+		VARIABLE pixnum 	: std_logic_vector(p_size - 1 DOWNTO 0);
+		VARIABLE is_in 		: BOOLEAN := TRUE;
+	BEGIN
+		pixnum := (OTHERS => '0');
+		FOR i IN word_size - 1 DOWNTO 0 LOOP
+			IF NOT (is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY)) THEN
+				is_in := FALSE;
+			END IF;
+			pixnum := slv(usg(pixnum) + 1);
+		END LOOP;
+		RETURN is_in;
+	END is_block_in_rect;
+	
 END cl_pack;
