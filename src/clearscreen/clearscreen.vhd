@@ -6,11 +6,6 @@ USE work.pix_cache_pak.ALL;
 USE work.cl_utility.ALL;
 USE work.cl_pack.ALL;
 ENTITY clearscreen IS
---GENERIC(
---	x_size : INTEGER := 6;
---	p_size : INTEGER := 4;
---	a_size : INTEGER := 8
---);
 PORT(
 	clk, reset		: IN  std_logic;
 	x,y 			: IN  std_logic_vector(x_size - 1 DOWNTO 0);
