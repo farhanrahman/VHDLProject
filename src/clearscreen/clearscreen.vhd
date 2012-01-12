@@ -3,13 +3,14 @@ USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
 USE work.rcb;
 USE work.pix_cache_pak.ALL;
-
+USE work.cl_utility.ALL;
+USE work.cl_pack.ALL;
 ENTITY clearscreen IS
-GENERIC(
-	x_size : INTEGER := 6;
-	p_size : INTEGER := 4;
-	a_size : INTEGER := 8
-);
+--GENERIC(
+--	x_size : INTEGER := 6;
+--	p_size : INTEGER := 4;
+--	a_size : INTEGER := 8
+--);
 PORT(
 	clk, reset		: IN  std_logic;
 	x,y 			: IN  std_logic_vector(x_size - 1 DOWNTO 0);
@@ -107,8 +108,8 @@ ELSE
 				nstate <= idle; --need to fix this..have to clear single pixel.
 			END IF;
 			
-			IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
-				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
+			IF is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
+			
 				-- check if pixel is within given rectangle
 				nstate <= draw_state;
 			ELSE
@@ -159,9 +160,7 @@ IF state = draw_state AND nstate = check AND delaycmd_in = '0' THEN
 	END IF;
 END IF;
 IF state = check THEN
-IF ((abs(sg(usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0)) - usg(oldX))) + abs(sg(usg(currentX) - usg(pixword(3 DOWNTO 0) & pixnum(1 DOWNTO 0))))) = abs(sg(usg(currentX) - usg(oldX))))
-				AND ((abs(sg(usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2)) - usg(oldY))) + abs(sg(usg(currentY) - usg(pixword(7 DOWNTO 4) & pixnum(3 DOWNTO 2))))) = abs(sg(usg(currentY) - usg(oldY)))) THEN
-	ELSE
+IF NOT is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
 		IF pixnum = pixnum_end THEN
 			pixnum 	<= (OTHERS => '0');
 			pixword <= slv(usg(pixword) + 1);

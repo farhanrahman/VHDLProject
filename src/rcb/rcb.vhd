@@ -130,24 +130,15 @@ END PROCESS PARSE_RCBCMD;
 -- DATA FLOW--
 pixword <= pixword1; pixnum <=pixnum1; pixopin <= pixopin1;
 
-FLUSH_PARSE : PROCESS (rcbcmd, startcmd) -- Process converts RCB Command for flush
+FLUSH_PARSE : PROCESS (rcbcmd) -- Process converts RCB Command for flush
 BEGIN
-	IF startcmd = '1' THEN
-		flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
-	ELSE 
-		flush <= '0';
-	END IF;
+	flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
 END PROCESS FLUSH_PARSE;
 
-PARSE_CMD : PROCESS(rcbcmd, flush, startcmd) -- Process converts rcbcmd to clear and draw
+PARSE_CMD : PROCESS(rcbcmd, flush) -- Process converts rcbcmd to clear and draw
 BEGIN
-	IF startcmd = '1' THEN
-		clear <= rcbcmd(2);
-		draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
-	ELSE
-		clear <= '0';
-		draw <= '0';
-	END IF;
+	clear <= rcbcmd(2);
+	draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
 END PROCESS PARSE_CMD;
 
 ASSIGN_OUT : PROCESS (vwrite1, delaycmd1) --Process assigns vwrite and delaycmd output from dummy variables
