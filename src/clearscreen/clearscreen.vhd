@@ -16,7 +16,8 @@ PORT(
 	delaycmd 		: OUT std_logic;
 	x_out, y_out	: OUT std_logic_vector(x_size - 1 DOWNTO 0);
 	rcbcmd_out		: OUT std_logic_vector(2 DOWNTO 0);
-	startcmd_out 	: OUT std_logic
+	startcmd_out 	: OUT std_logic;
+	clear_flush		: OUT std_logic_vector(2 DOWNTO 0)
 );
 
 END ENTITY clearscreen;
@@ -34,7 +35,7 @@ SIGNAL oldX, oldY			: std_logic_vector(x_size - 1 DOWNTO 0);
 SIGNAL delaycmd1, startcmd_out1 : std_logic;
 SIGNAL x_out1, y_out1 			: std_logic_vector(x_size - 1 DOWNTO 0);
 SIGNAL rcbcmd_out1				: std_logic_vector(2 DOWNTO 0);
-
+SIGNAL clear_flush_enable		: std_logic_vector(2 DOWNTO 0) := (OTHERS => '0');
 
 --ALIAS--
 	ALIAS slv  IS std_logic_vector;
@@ -49,7 +50,7 @@ BEGIN
 
 delaycmd <= delaycmd1; startcmd_out <= startcmd_out1;
 x_out <= x_out1; y_out <= y_out1;
-rcbcmd_out <= rcbcmd_out1;
+rcbcmd_out <= rcbcmd_out1; clear_flush <= clear_flush_enable;
 
 
 
@@ -147,28 +148,39 @@ IF state = idle AND nstate = check THEN
 	oldY 		<= currentY;
 END IF;
 IF state = draw_state AND nstate = check AND delaycmd_in = '0' THEN
-	IF pixnum = pixnum_end THEN
+	IF clear_flush_enable(2) = '1' THEN
 		pixnum 	<= (OTHERS => '0');
-		pixword <= slv(usg(pixword) + 1);
+		pixword <= slv(usg(pixword) + 1);		
 	ELSE
-		pixnum <= slv(usg(pixnum) + 1);
-	END IF;
-END IF;
-IF state = check THEN
-	IF NOT is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
 		IF pixnum = pixnum_end THEN
 			pixnum 	<= (OTHERS => '0');
 			pixword <= slv(usg(pixword) + 1);
 		ELSE
 			pixnum <= slv(usg(pixnum) + 1);
 		END IF;
-		
-		IF is_greaterthan_maxX(oldX, oldY, currentX, currentY, pixnum, pixword) AND pixnum = pixnum_end THEN
-			IF pixword /= pixword_end THEN
-				pixnum <= (OTHERS => '0');
-				pixword <= slv(usg(pixword) + 16 - usg(pixword(3 DOWNTO 0)));
+	END IF;
+END IF;
+IF state = check THEN
+	IF is_block_in_rect(pixword, currentX, currentY, oldX, oldY) THEN
+		clear_flush_enable(2) 			<= '1';
+		clear_flush_enable(1 DOWNTO 0) 	<= rcbcmd(1) & rcbcmd(0);
+	ELSE
+		clear_flush_enable <= (OTHERS => '0');
+		IF NOT is_in_rect(pixnum, pixword, currentX, currentY, oldX, oldY) THEN
+			IF pixnum = pixnum_end THEN
+				pixnum 	<= (OTHERS => '0');
+				pixword <= slv(usg(pixword) + 1);
+			ELSE
+				pixnum <= slv(usg(pixnum) + 1);
 			END IF;
-		END IF;				
+			
+			IF is_greaterthan_maxX(oldX, oldY, currentX, currentY, pixnum, pixword) AND pixnum = pixnum_end THEN
+				IF pixword /= pixword_end THEN
+					pixnum <= (OTHERS => '0');
+					pixword <= slv(usg(pixword) + 16 - usg(pixword(3 DOWNTO 0)));
+				END IF;
+			END IF;				
+		END IF;
 	END IF;
 END IF;
 END PROCESS ASSIGN_STATE;

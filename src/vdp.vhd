@@ -40,6 +40,7 @@ END ENTITY vdp;
 	SIGNAL x_cs_out, y_cs_out 					: std_logic_vector(vsize - 1 DOWNTO 0);
 	SIGNAL rcbcmd_cs_out						: std_logic_vector(2 DOWNTO 0);
 	
+	SIGNAL clear_flush : std_logic_vector(2 DOWNTO 0);
 BEGIN
 	
 	db: ENTITY draw_block
@@ -66,6 +67,7 @@ BEGIN
 		startcmd 		=> startcmd,
 		delaycmd_in		=> delaycmd,
 		-- OUTPUTS--
+		clear_flush		=> clear_flush,
 		delaycmd 		=> delaycmd_cs_out,
 		x_out 			=> x_cs_out, 
 		y_out 			=> y_cs_out,
@@ -81,6 +83,7 @@ BEGIN
 			y 			=> y_cs_out,
 			rcbcmd 		=> rcbcmd_cs_out,
 			startcmd 	=> startcmd_cs_out,
+			clear_flush => clear_flush,
 			delaycmd 	=> delaycmd,
 			vaddr 		=> vaddr,
 			vdin  		=> vdin,

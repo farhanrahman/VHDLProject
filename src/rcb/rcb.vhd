@@ -19,6 +19,7 @@ ENTITY rcb IS
 		x,y 		: IN  std_logic_vector(x_size - 1 DOWNTO 0);
 		rcbcmd 		: IN  std_logic_vector(2 DOWNTO 0);
 		startcmd 	: IN  std_logic;
+		clear_flush	: IN  std_logic_vector(2 DOWNTO 0);
 		delaycmd 	: OUT std_logic;
 		vaddr       : OUT std_logic_vector(a_size - 1 DOWNTO 0);
 		vdin        : OUT std_logic_vector(w_size - 1 DOWNTO 0);
@@ -74,17 +75,18 @@ pwordcache : ENTITY pix_word_cache --Pixword cache entity
 		p_size => p_size
 	)
 	PORT MAP(
-		clk     => clk,
-		reset   => reset, 
-		pw      => startcmd,
-		empty   => empty_enable,
-		pixnum  => pixnum,
-		pixopin => pixopin,
-		pixword => pixword,
-		store   => store,
-		word    => word,
-		clean   => clean,
-		ready   => readyrcb
+		clk     	=> clk,
+		reset   	=> reset, 
+		pw      	=> startcmd,
+		empty   	=> empty_enable,
+		pixnum  	=> pixnum,
+		pixopin 	=> pixopin,
+		pixword 	=> pixword,
+		clear_flush => clear_flush,
+		store   	=> store,
+		word    	=> word,
+		clean   	=> clean,
+		ready   	=> readyrcb
 	);
 	
 rfsm : ENTITY ram_fsm -- ram_fsm entity
