@@ -29,6 +29,8 @@ ARCHITECTURE rtl OF pix_word_cache IS
   SIGNAL clean1 : std_logic;
   SIGNAL word1  : std_logic_vector(w_size - 1 DOWNTO 0);
   SIGNAL ready1 : std_logic;
+  
+  SIGNAL clear_flush_result : pixop_t;  
 BEGIN
 COMB : PROCESS (reset, store1, pixword, word1, empty, pw, clean1)
 BEGIN  
@@ -72,7 +74,7 @@ END IF; -- reset = '1'
 END PROCESS COMB;
 
 REGISTERED : PROCESS 
-	VARIABLE clear_flush_result : pixop_t;
+	--VARIABLE clear_flush_result : pixop_t;
 BEGIN
   WAIT UNTIL clk'EVENT AND clk = '1';
   IF reset = '1' THEN
@@ -123,7 +125,7 @@ IF empty = '1' AND pw = '1' THEN
 END IF; -- empty = '1' AND pw = '1'    
 
 IF clear_flush(2) = '1' AND pw = '1' THEN
-clear_flush_result := clear_flush(1) & clear_flush(0);
+clear_flush_result <= clear_flush(1) & clear_flush(0);
 	FOR i IN store1'RANGE LOOP
 		  CASE clear_flush_result IS
 		  WHEN invert =>
