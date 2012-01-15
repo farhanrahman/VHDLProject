@@ -17,7 +17,8 @@ PORT(
 	x_out, y_out	: OUT std_logic_vector(x_size - 1 DOWNTO 0);
 	rcbcmd_out		: OUT std_logic_vector(2 DOWNTO 0);
 	startcmd_out 	: OUT std_logic;
-	clear_flush		: OUT std_logic_vector(2 DOWNTO 0)
+	clear_flush		: OUT std_logic_vector(2 DOWNTO 0);
+	clear_done		: OUT std_logic
 );
 
 END ENTITY clearscreen;
@@ -36,7 +37,7 @@ SIGNAL delaycmd1, startcmd_out1 : std_logic;
 SIGNAL x_out1, y_out1 			: std_logic_vector(x_size - 1 DOWNTO 0);
 SIGNAL rcbcmd_out1				: std_logic_vector(2 DOWNTO 0);
 SIGNAL clear_flush_enable		: std_logic_vector(2 DOWNTO 0) := (OTHERS => '0');
-
+SIGNAL clear_done_enable		: std_logic := '0';
 --ALIAS--
 	ALIAS slv  IS std_logic_vector;
 	ALIAS usg  IS unsigned;
@@ -51,7 +52,7 @@ BEGIN
 delaycmd <= delaycmd1; startcmd_out <= startcmd_out1;
 x_out <= x_out1; y_out <= y_out1;
 rcbcmd_out <= rcbcmd_out1; clear_flush <= clear_flush_enable;
-
+clear_done <= clear_done_enable;
 
 
 FSM_COMB : PROCESS (state, reset, delaycmd_in, startcmd, rcbcmd, x, y, currentX, currentY, oldX, oldY, pixword, pixnum)--, pixnum_reg, pixword_reg)
@@ -87,7 +88,6 @@ ELSE
 	rcbcmd_out1 	<= rcbcmd;
 	x_out1 			<= x;
 	y_out1 			<= y;
-
 	CASE state IS
 		WHEN idle =>
 			 IF rcbcmd(2) = '1' THEN
@@ -118,7 +118,7 @@ ELSE
 				END IF;
 				
 			END IF;
-		WHEN draw_state =>	
+		WHEN draw_state =>
 			delaycmd1 <= '1';
 			startcmd_out1 <= '1';
 			rcbcmd_out1 <= rcbcmd;
@@ -138,7 +138,9 @@ WAIT UNTIL rising_edge(clk);
 	state <= nstate;
 	currentX 	<= x;
 	currentY 	<= y;
-
+IF state = idle THEN
+	clear_done_enable <= '0';
+END IF;	
 IF nstate = idle THEN
 	pixnum 			<= (OTHERS => '0');
 	pixword			<= (OTHERS => '0');
@@ -182,6 +184,9 @@ IF state = check THEN
 			END IF;				
 		END IF;
 	END IF;
+END IF;
+IF (state = check OR state = draw_state) AND nstate = idle THEN
+	clear_done_enable <= '1';
 END IF;
 END PROCESS ASSIGN_STATE;
 

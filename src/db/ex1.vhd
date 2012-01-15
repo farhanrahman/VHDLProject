@@ -58,35 +58,33 @@ BEGIN
   
   BEGIN
 		WAIT UNTIL clk'EVENT AND clk = '1';
-		IF ((resetx = '1') and (delay = '0')) THEN -- RESET
-			error <= (OTHERS => '0'); 
-			x1 <= xin;
-			y1 <= yin;
-			xincr <= (OTHERS => '0');
-			yincr <= (OTHERS => '0');
-			xnew <= xin;
-			ynew <= yin;
-		
-		ELSIF ((resetx = '0') and (draw = '1') and (delay = '0')) THEN -- DRAW
-			xincr <= slv(usg(xin) - usg(x1));
-			yincr <= slv(usg(yin) - usg(y1));
-			xnew <= xin;
-			ynew <= yin;
+		IF (delay = '0') THEN
+			IF ((resetx = '1')) THEN -- RESET
+				error <= (OTHERS => '0'); 
+				x1 <= xin;
+				y1 <= yin;
+				xincr <= (OTHERS => '0');
+				yincr <= (OTHERS => '0');
+				xnew <= xin;
+				ynew <= yin;
 			
-		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '0') and (delay = '0')) THEN 
-			x1 <= slv(usg(x1) + 1);
-			
-			IF ((usg(err1) > usg(err2)) or ((err1 = err2) and (xbias = '0'))) THEN
-				y1 <= slv(usg(y1) + 1);
-				error <= slv(usg(error) + usg(yincr) - usg(xincr));
-			ELSIF ((usg(err1) < usg(err2)) or ((err1 = err2) and (xbias = '1'))) THEN
-				error <= slv(usg(error) + usg(yincr));
+			ELSIF ((resetx = '0') and (draw = '1')) THEN -- DRAW
+				xincr <= slv(usg(xin) - usg(x1));
+				yincr <= slv(usg(yin) - usg(y1));
+				xnew <= xin;
+				ynew <= yin;
+				
+			ELSIF ((resetx = '0') and (draw = '0') and (done1 = '0')) THEN 
+				x1 <= slv(usg(x1) + 1);
+				
+				IF ((usg(err1) > usg(err2)) or ((err1 = err2) and (xbias = '0'))) THEN
+					y1 <= slv(usg(y1) + 1);
+					error <= slv(usg(error) + usg(yincr) - usg(xincr));
+				ELSIF ((usg(err1) < usg(err2)) or ((err1 = err2) and (xbias = '1'))) THEN
+					error <= slv(usg(error) + usg(yincr));
+				END IF;
 			END IF;
-		
-		ELSIF ((resetx = '0') and (draw = '0') and (done1 = '1')) THEN
-			NULL; -- do nothing		
 		END IF;
-		
 		IF resetg = '1' THEN
 			error <= (OTHERS => '0'); 
 			x1 <= (OTHERS => '0');
