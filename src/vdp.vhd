@@ -43,8 +43,11 @@ END ENTITY vdp;
 	SIGNAL clear_flush : std_logic_vector(2 DOWNTO 0);
 	SIGNAL clear_done  : std_logic;
 BEGIN
+	-- WORKAROUND FOR CLEARSCREEN BUG 
+	-- halts incoming clear op as soon as it is created on hdb until clear is completed
 	hdb_busy <= hdb_busy_db OR (hdb(15) AND (NOT hdb(14)) AND (NOT clear_done));
-	db: ENTITY draw_block
+	
+	db: ENTITY draw_block 
 	PORT MAP(
 			clk 		=> clk,
 			reset 		=> reset,
