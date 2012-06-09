@@ -36,19 +36,23 @@ END ENTITY vdp;
 	SIGNAL rcbcmd 				: std_logic_vector(2 DOWNTO 0);
 	
 	--Clearscreen OUTPUT--
-	SIGNAL delaycmd_cs_out , startcmd_cs_out 	: std_logic;
+	SIGNAL delaycmd_cs_out , hdb_busy_db, startcmd_cs_out 	: std_logic;
 	SIGNAL x_cs_out, y_cs_out 					: std_logic_vector(vsize - 1 DOWNTO 0);
 	SIGNAL rcbcmd_cs_out						: std_logic_vector(2 DOWNTO 0);
 	
+	SIGNAL clear_flush : std_logic_vector(2 DOWNTO 0);
+	SIGNAL clear_done  : std_logic;
 BEGIN
+	-- halts incoming clear op as soon as it is created on hdb until clear is completed
+	hdb_busy <= hdb_busy_db OR (hdb(15) AND (NOT hdb(14)) AND (NOT clear_done));
 	
-	db: ENTITY draw_block
+	db: ENTITY draw_block 
 	PORT MAP(
 			clk 		=> clk,
 			reset 		=> reset,
 			hdb_dav 	=> dav,
 			hdb			=> hdb,	
-			hdb_busy 	=> hdb_busy,
+			hdb_busy 	=> hdb_busy_db,
 			delaycmd 	=> delaycmd_cs_out,
 			x 			=> x,
 			y 			=> y,
@@ -66,11 +70,13 @@ BEGIN
 		startcmd 		=> startcmd,
 		delaycmd_in		=> delaycmd,
 		-- OUTPUTS--
+		clear_flush		=> clear_flush,
 		delaycmd 		=> delaycmd_cs_out,
 		x_out 			=> x_cs_out, 
 		y_out 			=> y_cs_out,
 		rcbcmd_out 		=> rcbcmd_cs_out,
-		startcmd_out 	=> startcmd_cs_out
+		startcmd_out 	=> startcmd_cs_out,
+		clear_done	=> clear_done
 	);
 	
 	rb : ENTITY rcb
@@ -81,6 +87,7 @@ BEGIN
 			y 			=> y_cs_out,
 			rcbcmd 		=> rcbcmd_cs_out,
 			startcmd 	=> startcmd_cs_out,
+			clear_flush => clear_flush,
 			delaycmd 	=> delaycmd,
 			vaddr 		=> vaddr,
 			vdin  		=> vdin,

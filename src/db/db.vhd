@@ -213,6 +213,10 @@ BEGIN
 
 			-- Check if finished
 			IF (draw_done = '1') THEN
+				penx1 <= xin;
+				peny1 <= yin;
+				x1 <= xin;
+				y1 <= yin;
 				nstate <= listen;
 				busy <= '0';
 			END IF;

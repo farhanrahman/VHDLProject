@@ -19,6 +19,7 @@ ENTITY rcb IS
 		x,y 		: IN  std_logic_vector(x_size - 1 DOWNTO 0);
 		rcbcmd 		: IN  std_logic_vector(2 DOWNTO 0);
 		startcmd 	: IN  std_logic;
+		clear_flush	: IN  std_logic_vector(2 DOWNTO 0);
 		delaycmd 	: OUT std_logic;
 		vaddr       : OUT std_logic_vector(a_size - 1 DOWNTO 0);
 		vdin        : OUT std_logic_vector(w_size - 1 DOWNTO 0);
@@ -74,17 +75,18 @@ pwordcache : ENTITY pix_word_cache --Pixword cache entity
 		p_size => p_size
 	)
 	PORT MAP(
-		clk     => clk,
-		reset   => reset, 
-		pw      => startcmd,
-		empty   => empty_enable,
-		pixnum  => pixnum,
-		pixopin => pixopin,
-		pixword => pixword,
-		store   => store,
-		word    => word,
-		clean   => clean,
-		ready   => readyrcb
+		clk     	=> clk,
+		reset   	=> reset, 
+		pw      	=> startcmd,
+		empty   	=> empty_enable,
+		pixnum  	=> pixnum,
+		pixopin 	=> pixopin,
+		pixword 	=> pixword,
+		clear_flush => clear_flush,
+		store   	=> store,
+		word    	=> word,
+		clean   	=> clean,
+		ready   	=> readyrcb
 	);
 	
 rfsm : ENTITY ram_fsm -- ram_fsm entity
@@ -109,45 +111,23 @@ rfsm : ENTITY ram_fsm -- ram_fsm entity
   clk_invert <= NOT clk;
 
 PARSE_RCBCMD : PROCESS (x,y,rcbcmd) --Combinational process which converts x and y to pixword and pixnum for processing
-	VARIABLE pix_cmd       		: std_logic_vector(1 DOWNTO 0);
 BEGIN
-	pixword1(7 DOWNTO 4) <= y(5 DOWNTO 2);
-	pixword1(3 DOWNTO 0) <= x(5 DOWNTO 2);
-	
-	pixnum1(3 DOWNTO 2) <= y(1 DOWNTO 0);
-	pixnum1(1 DOWNTO 0) <= x(1 DOWNTO 0);
-	
-	pix_cmd := rcbcmd(1) & rcbcmd(0);
-	
-	CASE pix_cmd IS
-	  WHEN "00" => pixopin1 <= same;
-	  WHEN "01" => pixopin1 <= white;
-	  WHEN "10" => pixopin1 <= black;
-	  WHEN "11" => pixopin1 <= invert;
-	  WHEN OTHERS => NULL;   
-	 END CASE;
+	pixword1 <= y(5 DOWNTO 2) & x(5 DOWNTO 2);
+	pixnum1 <= y(1 DOWNTO 0) & x(1 DOWNTO 0);
+	pixopin1 <= rcbcmd(1) & rcbcmd(0);
 END PROCESS PARSE_RCBCMD;
 -- DATA FLOW--
 pixword <= pixword1; pixnum <=pixnum1; pixopin <= pixopin1;
 
-FLUSH_PARSE : PROCESS (rcbcmd, startcmd) -- Process converts RCB Command for flush
+FLUSH_PARSE : PROCESS (rcbcmd) -- Process converts RCB Command for flush
 BEGIN
-	IF startcmd = '1' THEN
-		flush <= NOT rcbcmd(2) AND NOT rcbcmd(1) AND NOT rcbcmd(0);
-	ELSE 
-		flush <= '0';
-	END IF;
+	flush <= NOT (rcbcmd(2) OR rcbcmd(1) OR rcbcmd(0));
 END PROCESS FLUSH_PARSE;
 
-PARSE_CMD : PROCESS(rcbcmd, flush, startcmd) -- Process converts rcbcmd to clear and draw
+PARSE_CMD : PROCESS(rcbcmd, flush) -- Process converts rcbcmd to clear and draw
 BEGIN
-	IF startcmd = '1' THEN
-		clear <= rcbcmd(2);
-		draw  <= (NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
-	ELSE
-		clear <= '0';
-		draw <= '0';
-	END IF;
+	clear <= rcbcmd(2);
+	draw  <= (rcbcmd(2) AND flush) OR NOT flush;--(NOT rcbcmd(2) AND NOT flush) OR (rcbcmd(2) AND NOT flush);
 END PROCESS PARSE_CMD;
 
 ASSIGN_OUT : PROCESS (vwrite1, delaycmd1) --Process assigns vwrite and delaycmd output from dummy variables

@@ -52,17 +52,16 @@ delay1 <= '0'; vwrite1 <= '0'; done1 <= '0';
 		WHEN m2 =>
 			IF start='1' OR start='0' THEN
 				nstate <= m3;
-				delay1 <= start;        
+				delay1 <= start;
+				done1 <= '1';
 			END IF;          
 		WHEN m3 =>
 			IF start='1' THEN
 				nstate <= m1;
 				vwrite1 <= '1';
-				done1 <= '1';
 			ELSE
 				nstate <= mx;
 				vwrite1 <= '1';
-				done1 <= '1';
 			END IF;           
 	END CASE;
 	END IF;
