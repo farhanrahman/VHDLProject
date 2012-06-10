@@ -6,7 +6,7 @@ The hardware is split into two blocks:
 
 2) Ram Control Block (RCB): Takes decoded commands from Draw Block and draws pixels onto the screen
 
-More information about the blocks can be found in the doc folder
+More information about the blocks can be found in the doc folder for the respective block folders
 
 contributers:
 
